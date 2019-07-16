@@ -92,6 +92,7 @@ class NodeCreateTest {
         }
         spec = spec.multiPart("nodeContent", nodeContent)
 
+        log.debug("Uploading node $nodePath")
         val response = spec.log().all().`when`()
                 .post("$nodeUrl?path=$nodePath")
                 .andReturn()
@@ -142,7 +143,7 @@ class NodeCreateTest {
     @Test
     @DisplayName("should return a 409 when asked to create a node that already exists")
     fun createExistingNode() {
-        val nodeName = "node1"
+        val nodeName = "node2"
         val nodePath = "/$nodeName"
 
         val token = getLoginToken()
@@ -166,7 +167,7 @@ class NodeCreateTest {
     @Test
     @DisplayName("should return a 403 Forbidden when asked to create a node whose parent doesn't exist")
     fun createNodeForNonexistentParent() {
-        val nodeName = "node1"
+        val nodeName = "node3"
         val nodePath = "/noparent/$nodeName"
 
         val token = getLoginToken()
@@ -181,7 +182,7 @@ class NodeCreateTest {
     @Test
     @DisplayName("should be able to create a node with a binary property")
     fun createNodeWithBinaryProperty() {
-        val nodeName = "node1"
+        val nodeName = "node4"
         val nodePath = "/$nodeName"
 
         val nodeRepresentation = NodeContentRepresentation()

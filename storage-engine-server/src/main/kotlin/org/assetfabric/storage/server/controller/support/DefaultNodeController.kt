@@ -64,7 +64,7 @@ class DefaultNodeController: NodeController {
             createCommand.execute().map { repr ->
                 ResponseEntity.ok(repr)
             }.onErrorResume { error ->
-                log.error("Error creating node", error)
+                log.error("Error creating node $nodePath", error)
                 when(error) {
                     is NodeNotFoundException -> Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).build<NodeRepresentation>())
                     is RuntimeException -> Mono.just(ResponseEntity.status(HttpStatus.CONFLICT).build<NodeRepresentation>())
