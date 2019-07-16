@@ -27,12 +27,14 @@ import org.assetfabric.storage.rest.NodeRepresentation
 import org.assetfabric.storage.rest.SingleValueNodeProperty
 import org.assetfabric.storage.server.Application
 import org.assetfabric.storage.server.controller.Constants.API_TOKEN
+import org.assetfabric.storage.spi.metadata.WorkingAreaPartitionAdapter
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.junit.jupiter.SpringExtension
@@ -59,11 +61,15 @@ class NodeCreateTest {
     @Value("\${test.password}")
     private lateinit var password: String
 
+    @Autowired
+    private lateinit var workingAreaPartitionAdapter: WorkingAreaPartitionAdapter
+
     private val loginUtility = LoginUtility()
 
     @BeforeEach
     private fun init() {
         RestAssured.port = port.toInt()
+        workingAreaPartitionAdapter.reset().block()
     }
 
     private inline fun <reified T> ResponseBodyExtractionOptions.to(): T {
