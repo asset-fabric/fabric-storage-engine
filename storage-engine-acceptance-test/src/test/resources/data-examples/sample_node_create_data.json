@@ -1,0 +1,24 @@
+{
+  "properties": {
+    "prop1": {
+      "type": "INTEGER",
+      "value": "2"
+    },
+    "prop2": {
+      "type": "LONG",
+      "value": "230942039423712830"
+    },
+    "prop3": {
+      "type": "STRING",
+      "value": "hi there"
+    },
+    "prop4": {
+      "type": "BOOLEAN",
+      "value": "true"
+    },
+    "prop5": {
+      "type": "DATE",
+      "value": "2000-01-01T00:00:00Z"
+    }
+  }
+}
