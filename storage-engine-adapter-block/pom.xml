@@ -26,67 +26,26 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>storage-engine-acceptance-test</artifactId>
-
-    <properties>
-        <rest.assured.version>4.0.0</rest.assured.version>
-        <flapdoodle.embed.mongo.version>2.2.0</flapdoodle.embed.mongo.version>
-    </properties>
+    <artifactId>storage-engine-adapter-block</artifactId>
 
     <dependencies>
-
         <dependency>
             <groupId>org.assetfabric</groupId>
-            <artifactId>storage-engine-api</artifactId>
+            <artifactId>storage-engine-core</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.assetfabric</groupId>
-            <artifactId>storage-engine-server</artifactId>
+            <artifactId>storage-engine-adapter-spi</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>org.assetfabric</groupId>
-            <artifactId>storage-engine-adapter-block</artifactId>
-            <version>${project.parent.version}</version>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.6</version>
         </dependency>
-
-        <dependency>
-            <groupId>io.rest-assured</groupId>
-            <artifactId>rest-assured</artifactId>
-            <version>${rest.assured.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.rest-assured</groupId>
-            <artifactId>spring-web-test-client</artifactId>
-            <version>${rest.assured.version}</version>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <!-- Embedded testing -->
-        <dependency>
-            <groupId>de.flapdoodle.embed</groupId>
-            <artifactId>de.flapdoodle.embed.mongo</artifactId>
-            <version>${flapdoodle.embed.mongo.version}</version>
-        </dependency>
-
-
-        <dependency>
-            <groupId>com.unboundid</groupId>
-            <artifactId>unboundid-ldapsdk</artifactId>
-            <version>4.0.10</version>
-        </dependency>
-
-
     </dependencies>
 
 

@@ -1,12 +1,7 @@
 
 spring:
-  application.name: AssetFabric Storage Service
+  application.name: Asset Fabric Storage Service
   ldap:
-    #url: ldap://localhost:389
-    #base: dc=trancemountain,dc=org
-    #username: uid=admin,ou=system
-    #password: secret
-
     embedded:
       base-dn: dc=melliforay,dc=org
       credential:
@@ -16,7 +11,6 @@ spring:
       port: 12345
       validation:
         enabled: false
-
 
 assetfabric:
   security:
@@ -32,8 +26,8 @@ assetfabric:
       port: 8080
     binary:
       adapter:
-        type: s3
-        s3.bucketName: melliforay
+        type: block
+        block.folder: target/assetfabric
       deduplication.strategy: conservative
     metadata.adapter:
       type: mongo
