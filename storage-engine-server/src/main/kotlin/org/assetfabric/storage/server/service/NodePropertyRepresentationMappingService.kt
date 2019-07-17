@@ -17,6 +17,7 @@
 
 package org.assetfabric.storage.server.service
 
+import org.assetfabric.storage.InputStreamWithLength
 import org.assetfabric.storage.rest.NodeProperty
 
 /**
@@ -29,9 +30,10 @@ interface NodePropertyRepresentationMappingService {
      * Parses the given RESTful node representation into properties that
      * can be understood by the internal metadata system.
      * @param map the RESTful node representation
+     * @param binaryMap a map of named binaries to their input streams
      * @return a map of node properties
      */
-    fun getInternalPropertyRepresentation(map: Map<String, NodeProperty>): MutableMap<String, Any>
+    fun getInternalPropertyRepresentation(map: Map<String, NodeProperty>, binaryMap: Map<String, InputStreamWithLength>): MutableMap<String, Any>
 
     /**
      * Converts the internal node property format into the external RESTful property format.

@@ -44,59 +44,20 @@ import java.io.InputStream
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(classes = [Application::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DisplayName("the node controller")
-class NodeCreateTest {
+class NodeCreateTest: AbstractTest() {
 
     private val log = LogManager.getLogger(NodeCreateTest::class.java)
-
-    private val sessionUrl = "/v1/session"
-
-    private val nodeUrl = "/v1/node"
 
     @Value("\${local.server.port}")
     private lateinit var port: Integer
 
-    @Value("\${test.user}")
-    private lateinit var user: String
-
-    @Value("\${test.password}")
-    private lateinit var password: String
-
     @Autowired
     private lateinit var workingAreaPartitionAdapter: WorkingAreaPartitionAdapter
-
-    private val loginUtility = LoginUtility()
 
     @BeforeEach
     private fun init() {
         RestAssured.port = port.toInt()
         workingAreaPartitionAdapter.reset().block()
-    }
-
-    private inline fun <reified T> ResponseBodyExtractionOptions.to(): T {
-        return this.`as`(T::class.java)
-    }
-
-    private fun getLoginToken(): String {
-        val token = loginUtility.getTokenForUser(sessionUrl, user, password)
-        assertNotNull(token, "null session token")
-        log.info("Sending node create request with token $token")
-        return token
-    }
-
-    private fun createNode(token: String, nodePath: String, nodeContent: NodeContentRepresentation, files: Map<String, InputStream>): Pair<NodeContentRepresentation, Response> {
-        var spec = RestAssured.given()
-                .header("Cookie", "$API_TOKEN=$token")
-        files.forEach {
-            val entry = it
-            spec = spec.multiPart(entry.key, entry.key, entry.value)
-        }
-        spec = spec.multiPart("nodeContent", nodeContent)
-
-        log.debug("Uploading node $nodePath")
-        val response = spec.log().all().`when`()
-                .post("$nodeUrl?path=$nodePath")
-                .andReturn()
-        return Pair(nodeContent, response)
     }
 
 

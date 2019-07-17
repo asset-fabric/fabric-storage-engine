@@ -18,6 +18,7 @@
 package org.assetfabric.storage.server.service.support
 
 import org.apache.logging.log4j.LogManager
+import org.assetfabric.storage.NodeNotFoundException
 import org.assetfabric.storage.NodeType
 import org.assetfabric.storage.Path
 import org.assetfabric.storage.RevisionNumber
@@ -41,7 +42,7 @@ import reactor.core.publisher.Mono
 import javax.annotation.PostConstruct
 
 @Service
-class DefaultMetadataManagerService: MetadataManagerService {
+class DefaultMetadataManagerService : MetadataManagerService {
 
     private val log = LogManager.getLogger(DefaultMetadataManagerService::class.java)
 
@@ -71,8 +72,8 @@ class DefaultMetadataManagerService: MetadataManagerService {
         return catalogPartitionAdapter.currentRepositoryRevision()
     }
 
-    override fun createNodeRepresentationInWorkingArea(session: Session, parentPath: String, name: String, nodeType: NodeType, properties: Map<String, Any>): Mono<out WorkingAreaNodeRepresentation> {
-        val actualParentPath = when(parentPath) {
+    override fun createNode(session: Session, parentPath: String, name: String, nodeType: NodeType, properties: MutableMap<String, Any>): Mono<out WorkingAreaNodeRepresentation> {
+        val actualParentPath = when (parentPath) {
             "/" -> ""
             else -> parentPath
         }
@@ -80,9 +81,9 @@ class DefaultMetadataManagerService: MetadataManagerService {
 
         val existingNodeMono = dataPartitionAdapter.nodeRepresentation(session.revision(), path)
         val representationMono: Mono<DefaultWorkingAreaNodeRepresentation> = existingNodeMono.map { existingNode ->
-            DefaultWorkingAreaNodeRepresentation(session.getSessionID(), name, Path(path), session.revision(), nodeType, existingNode, DefaultNodeContentRepresentation(properties) )
+            DefaultWorkingAreaNodeRepresentation(session.getSessionID(), name, Path(path), session.revision(), nodeType, existingNode, DefaultNodeContentRepresentation(properties))
         }.defaultIfEmpty(
-            DefaultWorkingAreaNodeRepresentation(session.getSessionID(), name, Path(path), session.revision(), nodeType, null, DefaultNodeContentRepresentation(properties) )
+                DefaultWorkingAreaNodeRepresentation(session.getSessionID(), name, Path(path), session.revision(), nodeType, null, DefaultNodeContentRepresentation(properties))
         )
 
         return representationMono.flatMap { repr ->
@@ -91,13 +92,26 @@ class DefaultMetadataManagerService: MetadataManagerService {
         }
     }
 
+    override fun updateNode(session: Session, path: String, properties: MutableMap<String, Any>): Mono<out WorkingAreaNodeRepresentation> {
+        val existingWorkingAreaNodeMono = workingAreaPartitionAdapter.nodeRepresentation(session.getSessionID(), path)
+        return existingWorkingAreaNodeMono.map { workingAreaRepresentation ->
+            workingAreaRepresentation.workingAreaRepresentation.properties = properties
+            workingAreaRepresentation
+        }.switchIfEmpty(Mono.defer {
+            dataPartitionAdapter.nodeRepresentation(session.revision(), path).map { existingNode ->
+                DefaultWorkingAreaNodeRepresentation(session.getSessionID(), existingNode.name, Path(path), session.revision(), existingNode.nodeType, existingNode, DefaultNodeContentRepresentation(properties))
+            }.switchIfEmpty(Mono.error(NodeNotFoundException("Node $path not found")))
+        })
+    }
+
     override fun nodeRepresentation(session: Session, path: String): Mono<NodeRepresentation> {
         val workingRepMono: Mono<WorkingAreaNodeRepresentation> = workingAreaPartitionAdapter.nodeRepresentation(session.getSessionID(), path)
         return workingRepMono
                 .map { it.effectiveNodeRepresentation() }
-                .switchIfEmpty(
-                        dataPartitionAdapter.nodeRepresentation(session.revision(), path)
-                                .map { it.getNodeRepresentation() }
+                .switchIfEmpty( Mono.defer {
+                    dataPartitionAdapter.nodeRepresentation(session.revision(), path)
+                            .map { it.getNodeRepresentation() }
+                    }
                 )
     }
 

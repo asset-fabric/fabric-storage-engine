@@ -42,9 +42,9 @@ class NodeContentRepresentationReadConverter: Converter<Document, NodeContentRep
      * Produces an immutable map from a [Document].
      * @param doc the document from which the map should be produced
      */
-    private fun mapFromDocument(doc: Document?): Map<String, Any> {
+    private fun mapFromDocument(doc: Document?): MutableMap<String, Any> {
         return when (doc) {
-            null -> HashMap()
+            null -> mutableMapOf()
             else -> {
                 doc.map {
                     val entryVal: Any = it.value
@@ -53,7 +53,7 @@ class NodeContentRepresentationReadConverter: Converter<Document, NodeContentRep
                         else -> it.value
                     }
                     it.key to value
-                }.toMap()
+                }.toMap().toMutableMap()
             }
         }
     }

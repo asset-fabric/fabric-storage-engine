@@ -21,11 +21,11 @@ import org.assetfabric.storage.NodeType
 import org.assetfabric.storage.spi.NodeContentRepresentation
 import org.assetfabric.storage.spi.NodeState
 
-class DefaultNodeContentRepresentation(override var nodeType: NodeType, override var properties: Map<String, Any>, override var state: NodeState): NodeContentRepresentation {
+class DefaultNodeContentRepresentation(override var nodeType: NodeType, override var properties: MutableMap<String, Any>, override var state: NodeState): NodeContentRepresentation {
 
     constructor(): this(NodeType.UNSTRUCTURED, hashMapOf(), NodeState.NORMAL)
 
-    constructor(properties: Map<String, Any>): this(NodeType.UNSTRUCTURED, properties, NodeState.NORMAL)
+    constructor(properties: MutableMap<String, Any>): this(NodeType.UNSTRUCTURED, properties, NodeState.NORMAL)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

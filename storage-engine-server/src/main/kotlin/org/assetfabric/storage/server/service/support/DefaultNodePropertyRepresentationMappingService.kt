@@ -17,8 +17,8 @@
 
 package org.assetfabric.storage.server.service.support
 
-import org.apache.logging.log4j.LogManager
 import org.assetfabric.storage.BinaryReference
+import org.assetfabric.storage.InputStreamWithLength
 import org.assetfabric.storage.ListType
 import org.assetfabric.storage.NodeReference
 import org.assetfabric.storage.TypedList
@@ -26,7 +26,9 @@ import org.assetfabric.storage.rest.MultiValueNodeProperty
 import org.assetfabric.storage.rest.NodeProperty
 import org.assetfabric.storage.rest.NodePropertyType
 import org.assetfabric.storage.rest.SingleValueNodeProperty
+import org.assetfabric.storage.server.service.BinaryManagerService
 import org.assetfabric.storage.server.service.NodePropertyRepresentationMappingService
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.text.DateFormat
@@ -46,6 +48,9 @@ class DefaultNodePropertyRepresentationMappingService: NodePropertyRepresentatio
     @Value("\${assetfabric.storage.web.port}")
     private lateinit var port: String
 
+    @Autowired
+    private lateinit var binaryManagerService: BinaryManagerService
+
     @PostConstruct
     private fun init() {
         val tz = TimeZone.getTimeZone("UTC")
@@ -54,7 +59,7 @@ class DefaultNodePropertyRepresentationMappingService: NodePropertyRepresentatio
         dateFormat = df
     }
 
-    override fun getInternalPropertyRepresentation(map: Map<String, NodeProperty>): MutableMap<String, Any> {
+    override fun getInternalPropertyRepresentation(map: Map<String, NodeProperty>, binaryMap: Map<String, InputStreamWithLength>): MutableMap<String, Any> {
 
         val retMap = HashMap<String, Any>()
 
@@ -67,7 +72,7 @@ class DefaultNodePropertyRepresentationMappingService: NodePropertyRepresentatio
                     NodePropertyType.BOOLEAN -> np.getValue().toBoolean()
                     NodePropertyType.DATE -> stringToDate(np.getValue())
                     NodePropertyType.BINARY -> np.getValue()
-                    NodePropertyType.BINARY_INPUT -> np.getValue()
+                    NodePropertyType.BINARY_INPUT -> inputToReference(binaryMap[np.getValue()]!!)
                     NodePropertyType.NODE -> np.getValue()
                     else -> throw RuntimeException("Unknown property type ${np.getType()}")
                 }
@@ -146,6 +151,10 @@ class DefaultNodePropertyRepresentationMappingService: NodePropertyRepresentatio
     private fun binaryReferenceToUrl(br: BinaryReference): BinaryReference {
         val path = br.path
         return BinaryReference("http://$host:$port/v1/binary?path=$path")
+    }
+
+    private fun inputToReference(b: InputStreamWithLength): BinaryReference {
+        return BinaryReference(binaryManagerService.createFile(b))
     }
 
 }

@@ -18,13 +18,18 @@
 package org.assetfabric.storage
 
 import io.restassured.RestAssured
+import io.restassured.response.Response
 import io.restassured.response.ResponseBodyExtractionOptions
+import io.restassured.specification.RequestSpecification
 import org.apache.logging.log4j.LogManager
+import org.assetfabric.storage.rest.NodeContentRepresentation
+import org.assetfabric.storage.server.controller.Constants
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.test.context.junit.jupiter.SpringExtension
+import java.io.InputStream
 
 @ExtendWith(SpringExtension::class)
 abstract class AbstractTest {
@@ -32,6 +37,8 @@ abstract class AbstractTest {
     private val log = LogManager.getLogger(AbstractTest::class.java)
 
     private val sessionUrl = "/v1/session"
+
+    private val nodeUrl = "/v1/node"
 
     @Value("\${local.server.port}")
     private lateinit var port: Integer
@@ -58,6 +65,34 @@ abstract class AbstractTest {
         Assertions.assertNotNull(token, "null session token")
         log.info("Sending node create request with token $token")
         return token
+    }
+
+    protected fun createNode(token: String, nodePath: String, nodeContent: NodeContentRepresentation, files: Map<String, InputStream>): Pair<NodeContentRepresentation, Response> {
+        val spec = buildNodeRequest(token, nodeContent, files)
+        val response = spec.log().all().`when`()
+                .post("$nodeUrl?path=$nodePath")
+                .andReturn()
+        return Pair(nodeContent, response)
+    }
+
+    protected fun updateNode(token: String, nodePath: String, nodeContent: NodeContentRepresentation, files: Map<String, InputStream>): Pair<NodeContentRepresentation, Response> {
+        val spec = buildNodeRequest(token, nodeContent, files)
+        val response = spec.log().all().`when`()
+                .put("$nodeUrl?path=$nodePath")
+                .andReturn()
+        return Pair(nodeContent, response)
+    }
+
+    private fun buildNodeRequest(token: String, nodeContent: NodeContentRepresentation, files: Map<String, InputStream>): RequestSpecification {
+        var spec = RestAssured.given()
+                .header("Cookie", "${Constants.API_TOKEN}=$token")
+        files.forEach {
+            val entry = it
+            spec = spec.multiPart(entry.key, entry.key, entry.value)
+        }
+        spec = spec.multiPart("nodeContent", nodeContent)
+
+        return spec
     }
 
 }

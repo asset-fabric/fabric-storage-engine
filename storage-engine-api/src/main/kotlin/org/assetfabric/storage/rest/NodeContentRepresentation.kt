@@ -26,6 +26,12 @@ open class NodeContentRepresentation {
 
     protected val _properties: MutableMap<String, NodeProperty> = mutableMapOf()
 
+    fun setNodeType(t: String) {
+        _nodeType = t
+    }
+
+    fun getNodeType(): String = _nodeType
+
     fun getProperties(): Map<String, NodeProperty> = _properties
 
     fun setProperties(m: Map<String, NodeProperty>) {
@@ -47,10 +53,8 @@ open class NodeContentRepresentation {
         _properties.put(name, nodeProperty)
     }
 
-    fun setNodeType(t: String) {
-        _nodeType = t
+    fun removeProperty(name: String) {
+        _properties.remove(name)
     }
-
-    fun getNodeType(): String = _nodeType
 
 }

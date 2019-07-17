@@ -15,20 +15,6 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.assetfabric.storage.spi
+package org.assetfabric.storage
 
-import org.assetfabric.storage.NodeType
-
-/**
- * The core representation of a [Node] -- its properties and node type, but not specifically
- * pointing to a node's name, path, or revision.
- */
-interface NodeContentRepresentation {
-
-    var state: NodeState
-
-    var nodeType: NodeType
-
-    var properties: MutableMap<String, Any>
-
-}
+class NodeModificationException(message: String): RuntimeException(message)

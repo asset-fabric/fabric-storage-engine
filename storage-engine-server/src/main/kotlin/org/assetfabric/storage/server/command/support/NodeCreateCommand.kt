@@ -47,9 +47,6 @@ class NodeCreateCommand(val session: Session, val parentPath: String, val name: 
     @Autowired
     private lateinit var metadataManagerService: MetadataManagerService
 
-    @Autowired
-    private lateinit var binaryManagerService: BinaryManagerService
-
     override fun execute(): Mono<Node> {
         val actualParentPath = when(parentPath) {
             "/" -> "/"
@@ -61,20 +58,8 @@ class NodeCreateCommand(val session: Session, val parentPath: String, val name: 
         return existingNodeMono.handle { _, sink: SynchronousSink<Node> ->
             sink.error(RuntimeException("Cannot create existing node $nodePath"))
         }.switchIfEmpty(Mono.defer {
-            // file any incoming binary properties
-            val streamMap = properties.filter { it.value is InputStreamWithLength }.toMap()
-            val binaryPathMap = streamMap.mapValues {
-                log.debug("Filing binary property ${it.key}")
-                binaryManagerService.createFile(it.value as InputStreamWithLength)
-            }
-            log.debug("Mapping binaries to references")
-            binaryPathMap.forEach { propertyName, path ->
-                val ref = BinaryReference(path)
-                properties[propertyName] = ref
-            }
-
             log.debug("Creating working area node")
-            val reprMono = metadataManagerService.createNodeRepresentationInWorkingArea(session, parentPath, name, nodeType, properties)
+            val reprMono = metadataManagerService.createNode(session, parentPath, name, nodeType, properties)
             reprMono.map { repr ->
                 log.debug("Returning mapped node")
                 context.getBean(DefaultNode::class.java, session, repr.effectiveNodeRepresentation())

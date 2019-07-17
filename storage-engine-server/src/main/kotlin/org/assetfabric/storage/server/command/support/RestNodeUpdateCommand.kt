@@ -18,47 +18,43 @@
 package org.assetfabric.storage.server.command.support
 
 import org.apache.logging.log4j.LogManager
-import org.assetfabric.storage.Node
+import org.assetfabric.storage.NodeModificationException
 import org.assetfabric.storage.NodeNotFoundException
-import org.assetfabric.storage.NodeType
 import org.assetfabric.storage.Path
 import org.assetfabric.storage.Session
 import org.assetfabric.storage.rest.NodeRepresentation
+import org.assetfabric.storage.server.service.MetadataManagerService
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.config.BeanDefinition
 import org.springframework.context.annotation.Scope
 import org.springframework.http.codec.multipart.Part
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.core.publisher.SynchronousSink
 import reactor.core.publisher.switchIfEmpty
 
 /**
  * A command that accepts a flux of HTTP Part objects, converts them into a representation suitable for
- * the creation of a node in the respository, then translates that new node into a format suitable
+ * the updating of a node in the respository, then translates that updated node into a format suitable
  * for response to a calling HTTP client.
  */
 @Component
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
-class RestNodeCreateCommand(session: Session, nodePath: Path, requestParts: Flux<Part>): AbstractRestNodeCommand(session, nodePath, requestParts) {
+class RestNodeUpdateCommand(session: Session, nodePath: Path, requestParts: Flux<Part>): AbstractRestNodeCommand(session, nodePath, requestParts) {
 
-    private val log = LogManager.getLogger(RestNodeCreateCommand::class.java)
+    private val log = LogManager.getLogger(RestNodeUpdateCommand::class.java)
+
+    @Autowired
+    private lateinit var metadataManagerService: MetadataManagerService
 
     override fun execute(): Mono<NodeRepresentation> {
-        log.debug("Executing REST node create command")
+        log.debug("Executing REST node update command")
 
         // figure out the parent nodeRepresentation from the path
         val nodeName = nodePath.nodeName()
-        val parentNodePath = nodePath.parentPath()
 
         val nodeMono = session.node(nodePath.toString())
-        val parentNodeMono = nodeMono.handle {  _, sink: SynchronousSink<Node> ->
-            sink.error(RuntimeException("Cannot create existing node $nodePath"))
-        }.switchIfEmpty(Mono.defer {
-            session.node(parentNodePath.toString())
-        })
-
-        return parentNodeMono.flatMap { parentNode ->
+        return nodeMono.flatMap { existingNode ->
 
             val requestPartsMono = extractRequestParts(requestParts)
 
@@ -66,21 +62,26 @@ class RestNodeCreateCommand(session: Session, nodePath: Path, requestParts: Flux
 
                 val (representation, props) = createNodeElements(partComponents)
 
-                log.debug("Creating new node")
-                parentNode.createChild(nodeName, NodeType(representation.getNodeType()), props).map { newNode ->
-                    log.debug("Mapping new node into external representation")
+                if (representation.getNodeType() != existingNode.nodeType().toString()) {
+                    throw NodeModificationException("Cannot change node type ${existingNode.nodeType()} to new type ${representation.getNodeType()} for node $nodePath")
+                }
+
+                log.debug("Updating node")
+
+                metadataManagerService.updateNode(session, nodePath.toString(), props).map {
+                    val nodeRepresentation = it.effectiveNodeRepresentation()
+
                     val retNode = NodeRepresentation()
                     retNode.setName(nodeName)
                     retNode.setPath(nodePath.toString())
-                    retNode.setNodeType(representation.getNodeType())
-                    retNode.setProperties(nodeMapper.getExternalPropertyRepresentation(newNode.properties()))
+                    retNode.setNodeType(nodeRepresentation.nodeType.toString())
+                    retNode.setProperties(nodeMapper.getExternalPropertyRepresentation(nodeRepresentation.properties))
                     retNode
                 }
 
             }
         }.switchIfEmpty {
-            throw NodeNotFoundException("Parent node $parentNodePath not found")
+            throw NodeNotFoundException("Node $nodePath not found")
         }
     }
-
 }

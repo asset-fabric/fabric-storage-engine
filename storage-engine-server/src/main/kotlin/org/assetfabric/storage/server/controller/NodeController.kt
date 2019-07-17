@@ -28,6 +28,7 @@ import org.springframework.http.codec.multipart.Part
 import org.springframework.web.bind.annotation.CookieValue
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -36,7 +37,7 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 @RestController
-@Api(tags = ["NodeRepresentation Controller"], value = "NodeRepresentation Controller", description = "Provides operations for node creation, retrieval, update and deletion.")
+@Api(tags = ["Node Controller"], value = "Node Controller", description = "Provides operations for node creation, retrieval, update and deletion.")
 @RequestMapping("/v1/node")
 interface NodeController {
 
@@ -50,5 +51,8 @@ interface NodeController {
     @ApiOperation("Retrieves the children of a node")
     @GetMapping("/children", produces = ["application/stream+json"])
     fun retrieveNodeChildren(@ApiParam("a valid session token") @CookieValue(API_TOKEN) token: String, @RequestParam("path") path: String): Mono<ResponseEntity<Flux<NodeRepresentation>>>
+
+    @PutMapping(consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    fun updateNode(@CookieValue(API_TOKEN) token: String, @RequestParam("path") path: String, @RequestBody request: Flux<Part>): Mono<ResponseEntity<NodeRepresentation>>
 
 }

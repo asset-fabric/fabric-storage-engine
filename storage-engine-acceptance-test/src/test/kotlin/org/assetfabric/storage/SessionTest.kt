@@ -18,7 +18,6 @@
 package org.assetfabric.storage
 
 import io.restassured.RestAssured
-import io.restassured.response.Response
 import org.assetfabric.storage.rest.NodeContentRepresentation
 import org.assetfabric.storage.rest.NodePropertyType
 import org.assetfabric.storage.server.Application
@@ -31,32 +30,12 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpStatus
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit.jupiter.SpringExtension
-import java.io.InputStream
 
 @ExtendWith(SpringExtension::class)
 @DirtiesContext
 @SpringBootTest(classes = [Application::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DisplayName("the session controller")
 class SessionTest: AbstractTest() {
-
-    private val sessionUrl = "/v1/session"
-
-    private val nodeUrl = "/v1/node"
-
-    private fun createNode(token: String, nodePath: String, nodeContent: NodeContentRepresentation, files: Map<String, InputStream>): Pair<NodeContentRepresentation, Response> {
-        var spec = RestAssured.given()
-                .header("Cookie", "$API_TOKEN=$token")
-        files.forEach {
-            val entry = it
-            spec = spec.multiPart(entry.key, entry.key, entry.value)
-        }
-        spec = spec.multiPart("nodeContent", nodeContent)
-
-        val response = spec.log().all().`when`()
-                .post("$nodeUrl?path=$nodePath")
-                .andReturn()
-        return Pair(nodeContent, response)
-    }
 
     @Test
     @DisplayName("should commit working area changes when the session is committed")
@@ -79,7 +58,6 @@ class SessionTest: AbstractTest() {
                 .`when`().post("/v1/session/commit")
         val commitResponse = spec.andReturn()
         assertEquals(HttpStatus.OK.value(), commitResponse.statusCode)
-
     }
 
 }

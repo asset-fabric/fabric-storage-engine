@@ -20,10 +20,12 @@ package org.assetfabric.storage.server.controller.support
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.assetfabric.storage.Node
+import org.assetfabric.storage.NodeModificationException
 import org.assetfabric.storage.NodeNotFoundException
 import org.assetfabric.storage.Path
 import org.assetfabric.storage.rest.NodeRepresentation
 import org.assetfabric.storage.server.command.support.RestNodeCreateCommand
+import org.assetfabric.storage.server.command.support.RestNodeUpdateCommand
 import org.assetfabric.storage.server.controller.NodeController
 import org.assetfabric.storage.server.service.NodePropertyRepresentationMappingService
 import org.springframework.beans.factory.annotation.Autowired
@@ -68,6 +70,29 @@ class DefaultNodeController: NodeController {
                 when(error) {
                     is NodeNotFoundException -> Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).build<NodeRepresentation>())
                     is RuntimeException -> Mono.just(ResponseEntity.status(HttpStatus.CONFLICT).build<NodeRepresentation>())
+                    else -> Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build<NodeRepresentation>())
+                }
+            }
+        }
+    }
+
+    override fun updateNode(token: String, @RequestParam("path") path: String, @RequestBody request: Flux<Part>): Mono<ResponseEntity<NodeRepresentation>> {
+        return sessionExecutor.executeWithSession(token) { session ->
+
+            val nodePath = Path(when (path.startsWith("/")) {
+                true -> path
+                false -> "/$path"
+            })
+            log.debug("Updating node at path $nodePath")
+
+            val updateCommand = context.getBean(RestNodeUpdateCommand::class.java, session, nodePath, request)
+            updateCommand.execute().map { repr ->
+                ResponseEntity.ok(repr)
+            }.onErrorResume { error ->
+                log.error("Error updating node $nodePath", error)
+                when(error) {
+                    is NodeNotFoundException -> Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).build<NodeRepresentation>())
+                    is NodeModificationException -> Mono.just(ResponseEntity.status(HttpStatus.CONFLICT).build<NodeRepresentation>())
                     else -> Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build<NodeRepresentation>())
                 }
             }

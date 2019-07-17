@@ -25,7 +25,7 @@ import org.assetfabric.storage.spi.NodeRepresentation
 import org.assetfabric.storage.spi.NodeState
 import org.assetfabric.storage.spi.RevisionedNodeRepresentation
 
-class DefaultRevisionedNodeRepresentation(override var name: String, override var path: Path, override var revision: RevisionNumber, override var nodeType: NodeType, override var properties: Map<String, Any>, override var state: NodeState): RevisionedNodeRepresentation {
+class DefaultRevisionedNodeRepresentation(override var name: String, override var path: Path, override var revision: RevisionNumber, override var nodeType: NodeType, override var properties: MutableMap<String, Any>, override var state: NodeState): RevisionedNodeRepresentation {
 
     constructor(revision: RevisionNumber, nodeRepr: NodeRepresentation): this(nodeRepr.name, nodeRepr.path, revision, NodeType.UNSTRUCTURED, nodeRepr.properties, NodeState.NORMAL)
 

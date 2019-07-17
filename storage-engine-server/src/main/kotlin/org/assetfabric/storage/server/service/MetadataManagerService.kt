@@ -73,7 +73,16 @@ interface MetadataManagerService {
      * @param properties the properties of the new node
      * @return a representation of the new, uncommitted node
      */
-    fun createNodeRepresentationInWorkingArea(session: Session, parentPath: String, name: String, nodeType: NodeType, properties: Map<String, Any>): Mono<out WorkingAreaNodeRepresentation>
+    fun createNode(session: Session, parentPath: String, name: String, nodeType: NodeType, properties: MutableMap<String, Any>): Mono<out WorkingAreaNodeRepresentation>
+
+    /**
+     * Updates the node at the given path with the specified properties.
+     * @param session the session being used to update the node
+     * @param path the path of the node
+     * @param properties the new properties of the node
+     * @return the updated working representation of the node
+     */
+    fun updateNode(session: Session, path: String, properties: MutableMap<String, Any>): Mono<out WorkingAreaNodeRepresentation>
 
     /**
      * Commits the given session, saving its working changes to permanent storage.
