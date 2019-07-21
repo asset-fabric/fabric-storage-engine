@@ -60,9 +60,12 @@ class NodeCreateCommand(val session: Session, val parentPath: String, val name: 
         }.switchIfEmpty(Mono.defer {
             log.debug("Creating working area node")
             val reprMono = metadataManagerService.createNode(session, parentPath, name, nodeType, properties)
-            reprMono.map { repr ->
-                log.debug("Returning mapped node")
-                context.getBean(DefaultNode::class.java, session, repr.effectiveNodeRepresentation())
+
+            reprMono.flatMap {
+                metadataManagerService.nodeRepresentation(session, nodePath).map { repr ->
+                    log.debug("Returning mapped node")
+                    context.getBean(DefaultNode::class.java, session, repr)
+                }
             }
         })
     }

@@ -21,9 +21,11 @@ import org.apache.logging.log4j.LogManager
 import org.assetfabric.storage.NodeType
 import org.assetfabric.storage.Path
 import org.assetfabric.storage.RevisionNumber
-import org.assetfabric.storage.spi.NodeState
+import org.assetfabric.storage.State
+import org.assetfabric.storage.spi.JournalEntryNodeRepresentation
 import org.assetfabric.storage.spi.RevisionedNodeRepresentation
 import org.assetfabric.storage.spi.metadata.JournalPartitionAdapter
+import org.assetfabric.storage.spi.support.DefaultJournalEntryNodeRepresentation
 import org.assetfabric.storage.spi.support.DefaultRevisionedNodeRepresentation
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -57,16 +59,18 @@ class MongoJournalPartitionAdapterTest {
     @Autowired
     private lateinit var partitionAdapter: JournalPartitionAdapter
 
-    private fun createRepresentation(name: String, path: Path, revision: RevisionNumber): RevisionedNodeRepresentation {
-        return DefaultRevisionedNodeRepresentation(name, path, revision, NodeType.UNSTRUCTURED, hashMapOf(), NodeState.NORMAL)
+    private fun createRepresentation(path: Path, revision: RevisionNumber): RevisionedNodeRepresentation {
+        return DefaultRevisionedNodeRepresentation(path, revision, NodeType.UNSTRUCTURED, hashMapOf(), State.NORMAL)
     }
 
     @Test
     @DisplayName("should be able to create a journal entry from a stream of nodes")
     fun testCreateJournalEntry() {
+        partitionAdapter.reset().block()
         val count = 5
-        val nodesFlux = Flux.range(0, count).map {
-            createRepresentation("node$it", Path("/testa/node$it"), RevisionNumber(3))
+        val nodesFlux = Flux.range(0, count).map<JournalEntryNodeRepresentation> {
+            val repr = createRepresentation(Path("/testa/node$it"), RevisionNumber(3))
+            DefaultJournalEntryNodeRepresentation("sessionID", repr.path(), repr.revision(), repr.nodeType(), null, repr)
         }
 
         partitionAdapter.createJournalEntrySet(nodesFlux).block()
@@ -78,14 +82,31 @@ class MongoJournalPartitionAdapterTest {
     @Test
     @DisplayName("should not allow the creation of a set of journal entries that contain duplicate paths")
     fun testCreateDuplicatePaths() {
+        partitionAdapter.reset().block()
         val count = 5
-        val nodesFlux = Flux.range(0, count).map {
-            createRepresentation("node", Path("/testb/node"), RevisionNumber(3))
+        val nodesFlux = Flux.range(0, count).map<JournalEntryNodeRepresentation> {
+            val repr = createRepresentation(Path("/testa/node"), RevisionNumber(3))
+            DefaultJournalEntryNodeRepresentation("sessionID", repr.path(), repr.revision(), repr.nodeType(), null, repr)
         }
 
         assertThrows(Exception::class.java) {
             partitionAdapter.createJournalEntrySet(nodesFlux).block()
         }
+    }
+
+    @Test
+    @DisplayName("should be able to get the next journal entry revision number")
+    fun testGetNextJournalEntryRevision() {
+        partitionAdapter.reset().block()
+        val count = 5
+        val nodesFlux = Flux.range(0, count).map<JournalEntryNodeRepresentation> {
+            val repr = createRepresentation(Path("/testa/node$it"), RevisionNumber(3))
+            DefaultJournalEntryNodeRepresentation("sessionID", repr.path(), repr.revision(), repr.nodeType(), null, repr)
+        }
+        partitionAdapter.createJournalEntrySet(nodesFlux).block()
+
+        val revision = partitionAdapter.getNextJournalRevision().block()!!
+        assertEquals(RevisionNumber(3), revision)
     }
 
     @Test
@@ -97,13 +118,15 @@ class MongoJournalPartitionAdapterTest {
         log.debug("Journal reset")
 
         val count = 5
-        val nodesFlux = Flux.range(0, count).map {
-            createRepresentation("node$it", Path("/testr/node$it"), RevisionNumber(3))
+        val nodesFlux = Flux.range(0, count).map<JournalEntryNodeRepresentation> {
+            val repr = createRepresentation(Path("/testa/node$it"), RevisionNumber(3))
+            DefaultJournalEntryNodeRepresentation("sessionID", repr.path(), repr.revision(), repr.nodeType(), null, repr)
         }
         partitionAdapter.createJournalEntrySet(nodesFlux).block()
 
-        val nodesFlux2 = Flux.range(0, count).map {
-            createRepresentation("node$it", Path("/test2r/node$it"), RevisionNumber(4))
+        val nodesFlux2 = Flux.range(0, count).map<JournalEntryNodeRepresentation> {
+            val repr = createRepresentation(Path("/testa/node$it"), RevisionNumber(4))
+            DefaultJournalEntryNodeRepresentation("sessionID", repr.path(), repr.revision(), repr.nodeType(), null, repr)
         }
         partitionAdapter.createJournalEntrySet(nodesFlux2).block()
 

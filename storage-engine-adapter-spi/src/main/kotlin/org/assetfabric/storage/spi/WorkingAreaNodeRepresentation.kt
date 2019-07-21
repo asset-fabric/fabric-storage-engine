@@ -23,19 +23,19 @@ import org.assetfabric.storage.RevisionNumber
 
 interface WorkingAreaNodeRepresentation {
 
-    var sessionId: String
+    fun sessionId(): String
 
-    var name: String
+    fun name(): String
 
-    var path: Path
+    fun path(): Path
 
-    var nodeType: NodeType
+    fun nodeType(): NodeType
 
-    var revision: RevisionNumber
+    fun revision(): RevisionNumber
 
-    var permanentRepresentation: NodeContentRepresentation?
+    fun permanentRepresentation(): NodeContentRepresentation?
 
-    var workingAreaRepresentation: NodeContentRepresentation
+    fun workingAreaRepresentation(): NodeContentRepresentation
 
     /**
      * Returns a representation of this node that factors in both the

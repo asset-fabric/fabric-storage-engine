@@ -20,7 +20,7 @@ package org.assetfabric.storage.spi.metadata.mongo
 import org.apache.logging.log4j.LogManager
 import org.assetfabric.storage.Path
 import org.assetfabric.storage.RevisionNumber
-import org.assetfabric.storage.spi.RevisionedNodeRepresentation
+import org.assetfabric.storage.spi.JournalEntryNodeRepresentation
 import org.assetfabric.storage.spi.metadata.JournalPartitionAdapter
 import org.assetfabric.storage.spi.metadata.mongo.MongoTemplateConfiguration.MongoTemplateConfiguration.JOURNAL
 import org.springframework.beans.factory.annotation.Autowired
@@ -47,18 +47,18 @@ class MongoJournalPartitionAdapter: JournalPartitionAdapter {
     @Qualifier(JOURNAL)
     private lateinit var provider: MongoTemplateProvider
 
-    override fun createJournalEntrySet(nodeRepresentations: Flux<RevisionedNodeRepresentation>): Mono<Boolean> {
+    override fun createJournalEntrySet(nodeRepresentations: Flux<JournalEntryNodeRepresentation>): Mono<Boolean> {
         val createdPaths = mutableListOf<Path>()
         var count = 0
         return nodeRepresentations.doOnNext { representation ->
             log.info("Adding journal entry")
-            if (createdPaths.contains(representation.path)) {
-                throw RuntimeException("Path ${representation.path} already created")
+            if (createdPaths.contains(representation.path())) {
+                throw RuntimeException("Path ${representation.path()} already created")
             } else {
                 count++
             }
         }.flatMap { representation ->
-            createdPaths.add(representation.path)
+            createdPaths.add(representation.path())
             provider.template.save(representation, journalCollectionName)
         }.then(Mono.defer { Mono.just(count > 0) })
     }
@@ -68,18 +68,18 @@ class MongoJournalPartitionAdapter: JournalPartitionAdapter {
         val query = Query()
                 .with(Sort(Sort.Direction.ASC, "revision"))
                 .limit(1)
-        val reprMono = provider.template.findOne(query, RevisionedNodeRepresentation::class.java, journalCollectionName)
-        return reprMono.map { representation -> representation.revision }
+        val reprMono = provider.template.findOne(query, JournalEntryNodeRepresentation::class.java, journalCollectionName)
+        return reprMono.map { representation -> representation.revision() }
     }
 
-    override fun getJournalEntrySet(revision: RevisionNumber): Flux<RevisionedNodeRepresentation> {
+    override fun getJournalEntrySet(revision: RevisionNumber): Flux<JournalEntryNodeRepresentation> {
         val nodesForRevisionQuery = Query().addCriteria(Criteria.where("revision").`is`(revision.toString()))
-        return provider.template.find(nodesForRevisionQuery, RevisionedNodeRepresentation::class.java, journalCollectionName)
+        return provider.template.find(nodesForRevisionQuery, JournalEntryNodeRepresentation::class.java, journalCollectionName)
     }
 
     override fun removeJournalEntrySet(revision: RevisionNumber): Mono<Void> {
         val query = Query().addCriteria(Criteria.where("revision").`is`(revision.toString()))
-        return provider.template.remove(query, RevisionedNodeRepresentation::class.java, journalCollectionName).doOnTerminate {
+        return provider.template.remove(query, JournalEntryNodeRepresentation::class.java, journalCollectionName).doOnTerminate {
             log.debug("Removed journal entry set for revision $revision")
         }.then()
     }

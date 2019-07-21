@@ -15,12 +15,17 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.assetfabric.storage.spi
+package org.assetfabric.storage.spi.support
 
-enum class NodeState {
+import org.assetfabric.storage.Path
+import org.assetfabric.storage.State
+import org.assetfabric.storage.spi.InverseNodeReferenceRepresentation
+import org.assetfabric.storage.spi.WorkingAreaInverseNodeReferenceRepresentation
 
-    NORMAL,
+class DefaultWorkingAreaInverseNodeReferenceRepresentation(val sessionId: String, ref: InverseNodeReferenceRepresentation): WorkingAreaInverseNodeReferenceRepresentation, InverseNodeReferenceRepresentation by ref {
 
-    DELETED
+    constructor(sessionId: String, nodePath: Path, referringPath: Path, state: State): this(sessionId, DefaultInverseNodeReferenceRepresentation(nodePath, referringPath, state))
+
+    override fun sessionId(): String = sessionId
 
 }

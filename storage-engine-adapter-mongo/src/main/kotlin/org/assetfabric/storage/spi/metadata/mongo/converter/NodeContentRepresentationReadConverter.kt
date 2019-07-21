@@ -17,71 +17,20 @@
 
 package org.assetfabric.storage.spi.metadata.mongo.converter
 
-import org.assetfabric.storage.BinaryReference
-import org.assetfabric.storage.ListType
-import org.assetfabric.storage.NodeReference
 import org.assetfabric.storage.NodeType
-import org.assetfabric.storage.RevisionNumber
-import org.assetfabric.storage.TypedList
+import org.assetfabric.storage.State
 import org.assetfabric.storage.spi.NodeContentRepresentation
-import org.assetfabric.storage.spi.NodeState
 import org.assetfabric.storage.spi.support.DefaultNodeContentRepresentation
 import org.bson.Document
 import org.springframework.core.convert.converter.Converter
 
-class NodeContentRepresentationReadConverter: Converter<Document, NodeContentRepresentation> {
+class NodeContentRepresentationReadConverter: AbstractReadConverter(), Converter<Document, NodeContentRepresentation> {
 
-    override fun convert(doc: Document): NodeContentRepresentation? {
+    override fun convert(doc: Document): NodeContentRepresentation {
         val props = mapFromDocument(doc.get("properties", Document::class.java))
-        val state = NodeState.valueOf(doc.getString("state"))
+        val state = State.valueOf(doc.getString("state"))
         val nodeType = NodeType(doc.getString("nodeType"))
         return DefaultNodeContentRepresentation(nodeType, props, state)
-    }
-
-    /**
-     * Produces an immutable map from a [Document].
-     * @param doc the document from which the map should be produced
-     */
-    private fun mapFromDocument(doc: Document?): MutableMap<String, Any> {
-        return when (doc) {
-            null -> mutableMapOf()
-            else -> {
-                doc.map {
-                    val entryVal: Any = it.value
-                    val value = when (entryVal) {
-                        is Document -> objectFromDocument(entryVal)
-                        else -> it.value
-                    }
-                    it.key to value
-                }.toMap().toMutableMap()
-            }
-        }
-    }
-
-    /**
-     * Produces one of the specialized data types, i.e. a [BinaryReference] or
-     * [NodeReference], from a [Document] object.
-     * @param doc the document from which the data should be produced
-     */
-    private fun objectFromDocument(doc: Document): Any {
-        val type = doc.getString("type")
-        return when (type) {
-            "BinaryReference" -> BinaryReference(doc.getString("path"))
-            "NodeReference" -> {
-                val sr: String? = doc["snapshotRevision"] as String?
-                val revision: RevisionNumber? = when (sr) {
-                    null -> null
-                    else -> RevisionNumber(sr)
-                }
-                NodeReference(doc.getString("path"), revision)
-            }
-            "TypedList" -> {
-                val listType = doc.getString("listType")
-                val values = doc.get("values")
-                TypedList(ListType.valueOf(listType), values as List<Any>)
-            }
-            else -> throw RuntimeException("Unknown property $doc")
-        }
     }
 
 }

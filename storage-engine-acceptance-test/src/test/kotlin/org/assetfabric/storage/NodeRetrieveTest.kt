@@ -26,9 +26,7 @@ import org.assetfabric.storage.rest.NodeRepresentation
 import org.assetfabric.storage.rest.SingleValueNodeProperty
 import org.assetfabric.storage.server.Application
 import org.assetfabric.storage.server.command.support.MetadataStoreResetCommand
-import org.assetfabric.storage.server.command.support.NodeCreateCommand
 import org.assetfabric.storage.server.controller.Constants.API_TOKEN
-import org.assetfabric.storage.spi.NodeState
 import org.assetfabric.storage.spi.metadata.CatalogPartitionAdapter
 import org.assetfabric.storage.spi.metadata.DataPartitionAdapter
 import org.assetfabric.storage.spi.support.DefaultRevisionedNodeRepresentation
@@ -38,7 +36,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.junit.jupiter.api.fail
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
@@ -109,8 +106,8 @@ class NodeRetrieveTest {
     @Test
     @DisplayName("should be able to retrieve an existing committed node with all of its properties")
     fun retrieveNode() {
-        val properties = hashMapOf("intProp" to 1, "stringProp" to "string")
-        val node = DefaultRevisionedNodeRepresentation("node1", Path("/node1"), RevisionNumber(1), NodeType.UNSTRUCTURED, properties, NodeState.NORMAL)
+        val properties = mutableMapOf<String, Any>("intProp" to 1, "stringProp" to "string")
+        val node = DefaultRevisionedNodeRepresentation(Path("/node1"), RevisionNumber(1), NodeType.UNSTRUCTURED, properties, State.NORMAL)
 
         dataPartitionAdapter.writeNodeRepresentations(Flux.just(node)).block()
         catalogAdapter.setRepositoryRevision(RevisionNumber(1)).block()
@@ -143,9 +140,9 @@ class NodeRetrieveTest {
     @Test
     @DisplayName("should be able to return the children of a parent node")
     fun retrieveChildNodes() {
-        val parent = DefaultRevisionedNodeRepresentation("node1", Path("/node1"), RevisionNumber(1), NodeType.UNSTRUCTURED, hashMapOf(), NodeState.NORMAL)
-        val child1 = DefaultRevisionedNodeRepresentation("node2", Path("/node1/node2"), RevisionNumber(1), NodeType.UNSTRUCTURED, hashMapOf(), NodeState.NORMAL)
-        val child2 = DefaultRevisionedNodeRepresentation("node3", Path("/node1/node3"), RevisionNumber(1), NodeType.UNSTRUCTURED, hashMapOf(), NodeState.NORMAL)
+        val parent = DefaultRevisionedNodeRepresentation(Path("/node1"), RevisionNumber(1), NodeType.UNSTRUCTURED, hashMapOf(), State.NORMAL)
+        val child1 = DefaultRevisionedNodeRepresentation(Path("/node1/node2"), RevisionNumber(1), NodeType.UNSTRUCTURED, hashMapOf(), State.NORMAL)
+        val child2 = DefaultRevisionedNodeRepresentation(Path("/node1/node3"), RevisionNumber(1), NodeType.UNSTRUCTURED, hashMapOf(), State.NORMAL)
 
         dataPartitionAdapter.writeNodeRepresentations(Flux.just(parent, child1, child2)).block()
         catalogAdapter.setRepositoryRevision(RevisionNumber(1)).block()

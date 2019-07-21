@@ -21,10 +21,11 @@ import org.apache.logging.log4j.LogManager
 import org.assetfabric.storage.NodeType
 import org.assetfabric.storage.Path
 import org.assetfabric.storage.RevisionNumber
-import org.assetfabric.storage.spi.NodeState
+import org.assetfabric.storage.State
+import org.assetfabric.storage.spi.JournalEntryNodeRepresentation
 import org.assetfabric.storage.spi.RevisionedNodeRepresentation
 import org.assetfabric.storage.spi.metadata.DataPartitionAdapter
-import org.assetfabric.storage.spi.metadata.mongo.MongoTemplateConfiguration.MongoTemplateConfiguration.DATA_PARTITION
+import org.assetfabric.storage.spi.metadata.mongo.MongoTemplateConfiguration.MongoTemplateConfiguration.COMMITTED_DATA_PARTITION
 import org.assetfabric.storage.spi.support.DefaultRevisionedNodeRepresentation
 import org.bson.Document
 import org.springframework.beans.factory.annotation.Autowired
@@ -50,15 +51,22 @@ class MongoDataPartitionAdapter: DataPartitionAdapter {
     private lateinit var partitionCollectionName: String
 
     @Autowired
-    @Qualifier(DATA_PARTITION)
+    @Qualifier(COMMITTED_DATA_PARTITION)
     private lateinit var provider: MongoTemplateProvider
 
     override fun writeNodeRepresentations(representations: Flux<RevisionedNodeRepresentation>): Mono<Void> {
         return representations.flatMap { repr ->
             provider.template.save(repr, partitionCollectionName).doOnTerminate {
-                log.debug("Wrote node ${repr.path} to data partition at revision ${repr.revision}")
+                log.debug("Wrote node ${repr.path()} to data partition at revision ${repr.revision()}")
             }
         }.then()
+    }
+
+    override fun writeJournalEntries(entries: Flux<JournalEntryNodeRepresentation>): Mono<Void> {
+        val reprFlux = entries.map<RevisionedNodeRepresentation> { journalEntry ->
+            DefaultRevisionedNodeRepresentation(journalEntry.path(), journalEntry.revision(), journalEntry.nodeType(), journalEntry.content().properties(), State.NORMAL)
+        }
+        return writeNodeRepresentations(reprFlux)
     }
 
     override fun nodeRepresentation(revision: RevisionNumber, path: String): Mono<RevisionedNodeRepresentation> {
@@ -100,7 +108,7 @@ class MongoDataPartitionAdapter: DataPartitionAdapter {
     }
 
     override fun reset(): Mono<Void> {
-        val createMono = writeNodeRepresentations(Flux.just(DefaultRevisionedNodeRepresentation("", Path("/"), RevisionNumber(0), NodeType.UNSTRUCTURED, hashMapOf(), NodeState.NORMAL)))
+        val createMono = writeNodeRepresentations(Flux.just(DefaultRevisionedNodeRepresentation(Path("/"), RevisionNumber(0), NodeType.UNSTRUCTURED, hashMapOf(), State.NORMAL)))
         return provider.template.remove(Query(), partitionCollectionName)
                 .then(createMono)
     }

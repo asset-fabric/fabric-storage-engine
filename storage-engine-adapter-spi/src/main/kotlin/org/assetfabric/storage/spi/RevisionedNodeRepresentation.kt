@@ -24,7 +24,7 @@ import org.assetfabric.storage.RevisionNumber
  */
 interface RevisionedNodeRepresentation: NodeRepresentation {
 
-    var revision: RevisionNumber
+    fun revision(): RevisionNumber
 
     fun getNodeRepresentation(): NodeRepresentation
 

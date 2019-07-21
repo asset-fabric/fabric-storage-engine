@@ -25,18 +25,18 @@ class WorkingAreaNodeRepresentationWriteConverter: Converter<WorkingAreaNodeRepr
 
     private val reprConverter = NodeContentRepresentationWriteConverter()
 
-    override fun convert(wanr: WorkingAreaNodeRepresentation): Document? {
+    override fun convert(wanr: WorkingAreaNodeRepresentation): Document {
         val doc = Document()
-        doc["name"] = wanr.name
-        doc["path"] = wanr.path.toString()
-        doc["parentPath"] = when(wanr.path.isRoot()) {
+        doc["name"] = wanr.name()
+        doc["path"] = wanr.path().toString()
+        doc["parentPath"] = when(wanr.path().isRoot()) {
             true -> ""
-            false -> wanr.path.parentPath().toString()
+            false -> wanr.path().parentPath().toString()
         }
-        doc["revision"] = wanr.revision.toString()
-        doc["sessionId"] = wanr.sessionId
-        doc["nodeType"] = wanr.nodeType.toString()
-        doc["workingAreaRepresentation"] = reprConverter.convert(wanr.workingAreaRepresentation)
+        doc["revision"] = wanr.revision().toString()
+        doc["sessionId"] = wanr.sessionId()
+        doc["nodeType"] = wanr.nodeType().toString()
+        doc["workingAreaRepresentation"] = reprConverter.convert(wanr.workingAreaRepresentation())
         return doc
     }
 

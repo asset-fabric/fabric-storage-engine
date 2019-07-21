@@ -30,12 +30,11 @@ class NodeRepresentationReadConverter: Converter<Document, NodeRepresentation> {
 
     private val readConverter = NodeContentRepresentationReadConverter()
 
-    override fun convert(doc: Document): NodeRepresentation? {
-        val name = doc.getString("name")
+    override fun convert(doc: Document): NodeRepresentation {
         val path = Path(doc.getString("path"))
-        val coreNode = readConverter.convert(doc)!!
+        val coreNode = readConverter.convert(doc)
 
-        return DefaultNodeRepresentation(name, path, coreNode)
+        return DefaultNodeRepresentation(path, coreNode)
     }
 
 }

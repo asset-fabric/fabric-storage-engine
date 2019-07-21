@@ -27,8 +27,8 @@ class RevisionedNodeRepresentationReadConverter: Converter<Document, RevisionedN
 
     private val converter = NodeRepresentationReadConverter()
 
-    override fun convert(doc: Document): RevisionedNodeRepresentation? {
-        val nodeRep = converter.convert(doc)!!
+    override fun convert(doc: Document): RevisionedNodeRepresentation {
+        val nodeRep = converter.convert(doc)
         val revision = RevisionNumber(doc.getString("revision"))
         return DefaultRevisionedNodeRepresentation(revision, nodeRep)
     }

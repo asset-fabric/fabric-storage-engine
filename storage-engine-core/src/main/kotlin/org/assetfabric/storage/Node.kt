@@ -30,6 +30,8 @@ interface Node {
 
     fun nodeType(): NodeType
 
+    fun state(): State
+
     fun properties(): Map<String, Any>
 
     fun createChild(name: String, nodeType: NodeType, properties: MutableMap<String, Any>): Mono<Node>

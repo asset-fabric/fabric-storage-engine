@@ -25,9 +25,9 @@ class RevisionedNodeRepresentationWriteConverter: Converter<RevisionedNodeRepres
 
     private val converter = NodeRepresentationWriteConverter()
 
-    override fun convert(repr: RevisionedNodeRepresentation): Document? {
-        val doc = converter.convert(repr)!!
-        doc["revision"] = repr.revision.toString()
+    override fun convert(repr: RevisionedNodeRepresentation): Document {
+        val doc = converter.convert(repr)
+        doc["revision"] = repr.revision().toString()
         return doc
     }
 

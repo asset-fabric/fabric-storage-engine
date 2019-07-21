@@ -19,8 +19,8 @@ package org.assetfabric.storage.spi.metadata.mongo.converter
 
 import org.assetfabric.storage.NodeType
 import org.assetfabric.storage.Path
+import org.assetfabric.storage.State
 import org.assetfabric.storage.spi.NodeRepresentation
-import org.assetfabric.storage.spi.NodeState
 import org.assetfabric.storage.spi.support.DefaultNodeRepresentation
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DisplayName
@@ -32,7 +32,7 @@ class NodeRepresentationWriteConverterTest {
     private val converter = NodeRepresentationWriteConverter()
 
     private fun createRepresentation(): NodeRepresentation {
-        val repr = DefaultNodeRepresentation("node name", Path("/node/path"), NodeType.UNSTRUCTURED, hashMapOf(), NodeState.NORMAL)
+        val repr = DefaultNodeRepresentation(Path("/node/path"), NodeType.UNSTRUCTURED, State.NORMAL, hashMapOf())
         return repr
     }
 
@@ -41,7 +41,7 @@ class NodeRepresentationWriteConverterTest {
     fun writeName() {
         val repr = createRepresentation()
         val doc = converter.convert(repr)
-        assertEquals(repr.name, doc!!.getString("name"))
+        assertEquals(repr.name(), doc.getString("name"))
     }
 
     @Test
@@ -49,7 +49,7 @@ class NodeRepresentationWriteConverterTest {
     fun writePath() {
         val repr = createRepresentation()
         val doc = converter.convert(repr)
-        assertEquals(repr.path.toString(), doc!!.getString("path"))
+        assertEquals(repr.path().toString(), doc.getString("path"))
     }
 
 }

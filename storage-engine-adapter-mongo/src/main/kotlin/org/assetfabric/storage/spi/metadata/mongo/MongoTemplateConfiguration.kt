@@ -18,8 +18,14 @@
 package org.assetfabric.storage.spi.metadata.mongo
 
 import com.mongodb.reactivestreams.client.MongoClient
+import org.assetfabric.storage.spi.metadata.mongo.converter.CommittedInverseNodeReferenceRepresentationReadConverter
+import org.assetfabric.storage.spi.metadata.mongo.converter.CommittedInverseNodeReferenceRepresentationWriteConverter
+import org.assetfabric.storage.spi.metadata.mongo.converter.JournalEntryNodeRepresentationReadConverter
+import org.assetfabric.storage.spi.metadata.mongo.converter.JournalEntryNodeRepresentationWriteConverter
 import org.assetfabric.storage.spi.metadata.mongo.converter.RevisionedNodeRepresentationReadConverter
 import org.assetfabric.storage.spi.metadata.mongo.converter.RevisionedNodeRepresentationWriteConverter
+import org.assetfabric.storage.spi.metadata.mongo.converter.WorkingAreaInverseNodeReferenceRepresentationReadConverter
+import org.assetfabric.storage.spi.metadata.mongo.converter.WorkingAreaInverseNodeReferenceRepresentationWriteConverter
 import org.assetfabric.storage.spi.metadata.mongo.converter.WorkingAreaNodeRepresentationReadConverter
 import org.assetfabric.storage.spi.metadata.mongo.converter.WorkingAreaNodeRepresentationWriteConverter
 import org.springframework.beans.factory.annotation.Autowired
@@ -39,9 +45,13 @@ class MongoTemplateConfiguration {
 
     companion object MongoTemplateConfiguration {
 
-        const val DATA_PARTITION = "dataPartition"
+        const val COMMITTED_DATA_PARTITION = "dataPartition"
+
+        const val COMMITTED_NODE_INDEX = "committedNodeIndex"
 
         const val WORKING_AREA = "workingArea"
+
+        const val WORKING_AREA_NODE_INDEX = "workingAreaNodeIndex"
 
         const val JOURNAL = "journal"
 
@@ -68,13 +78,25 @@ class MongoTemplateConfiguration {
     }
 
     @Bean
-    @Qualifier(JOURNAL)
-    fun createJournalTemplate(): MongoTemplateProvider {
-        return createTemplate(listOf(RevisionedNodeRepresentationReadConverter(), RevisionedNodeRepresentationWriteConverter()))
+    @Qualifier(WORKING_AREA_NODE_INDEX)
+    fun createWorkingAreaNodeIndexTemplate(): MongoTemplateProvider {
+        return createTemplate(listOf(WorkingAreaInverseNodeReferenceRepresentationReadConverter(), WorkingAreaInverseNodeReferenceRepresentationWriteConverter()))
     }
 
     @Bean
-    @Qualifier(DATA_PARTITION)
+    @Qualifier(JOURNAL)
+    fun createJournalTemplate(): MongoTemplateProvider {
+        return createTemplate(listOf(JournalEntryNodeRepresentationReadConverter(), JournalEntryNodeRepresentationWriteConverter()))
+    }
+
+    @Bean
+    @Qualifier(COMMITTED_NODE_INDEX)
+    fun createNodeIndexPartitionTemplate(): MongoTemplateProvider {
+        return createTemplate(listOf(CommittedInverseNodeReferenceRepresentationReadConverter(), CommittedInverseNodeReferenceRepresentationWriteConverter()))
+    }
+
+    @Bean
+    @Qualifier(COMMITTED_DATA_PARTITION)
     fun createDataPartitionTemplate(): MongoTemplateProvider {
         return createTemplate(listOf(RevisionedNodeRepresentationReadConverter(), RevisionedNodeRepresentationWriteConverter()))
     }

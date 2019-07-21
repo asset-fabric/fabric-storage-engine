@@ -49,6 +49,7 @@ class SessionTest: AbstractTest() {
             val contentRepresentation = NodeContentRepresentation()
             contentRepresentation.setNodeType(NodeType.UNSTRUCTURED.toString())
             contentRepresentation.setProperty("booleanProp", NodePropertyType.BOOLEAN, "true")
+            contentRepresentation.setProperty("nodeRef", NodePropertyType.NODE, "/")
             val (_, response) = createNode(token, nodePath, contentRepresentation, hashMapOf())
             assertEquals(200, response.statusCode, "Wrong HTTP status code")
         }

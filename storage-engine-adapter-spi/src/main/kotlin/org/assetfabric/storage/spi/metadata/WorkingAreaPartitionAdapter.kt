@@ -54,6 +54,12 @@ interface WorkingAreaPartitionAdapter {
     fun getWorkingAreaRepresentations(sessionId: String): Flux<WorkingAreaNodeRepresentation>
 
     /**
+     * Updates the given working area representation with the supplied representation.
+     * @param representation the working area representation to update
+     */
+    fun updateWorkingAreaRepresentation(representation: WorkingAreaNodeRepresentation): Mono<WorkingAreaNodeRepresentation>
+
+    /**
      * Deletes the working area nodes for a session.
      * @param sessionId the session ID of the nodes to remove
      */

@@ -17,14 +17,21 @@
 
 package org.assetfabric.storage.server.command.support
 
+import org.apache.logging.log4j.LogManager
+import org.assetfabric.storage.NodeReference
+import org.assetfabric.storage.Path
 import org.assetfabric.storage.RevisionNumber
 import org.assetfabric.storage.Session
+import org.assetfabric.storage.State
 import org.assetfabric.storage.server.command.ReturningCommand
 import org.assetfabric.storage.server.service.SessionService
-import org.assetfabric.storage.spi.RevisionedNodeRepresentation
+import org.assetfabric.storage.spi.CommittedInverseNodeReferenceRepresentation
+import org.assetfabric.storage.spi.JournalEntryNodeRepresentation
 import org.assetfabric.storage.spi.metadata.CatalogPartitionAdapter
+import org.assetfabric.storage.spi.metadata.CommittedNodeIndexPartitionAdapter
 import org.assetfabric.storage.spi.metadata.DataPartitionAdapter
 import org.assetfabric.storage.spi.metadata.JournalPartitionAdapter
+import org.assetfabric.storage.spi.support.DefaultCommittedInverseNodeReferenceRepresentation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.config.BeanDefinition
 import org.springframework.context.annotation.Scope
@@ -33,18 +40,23 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 /**
- * Writes the next journal entries to the active data partition, removes the journal entries,
+ * Writes the next journal entries to the committed data partition, removes the journal entries,
  * and updates the repository revision.
  */
 @Component
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
 class JournalCommitCommand(val session: Session): ReturningCommand<RevisionNumber> {
 
+    private val log = LogManager.getLogger(JournalCommitCommand::class.java)
+
     @Autowired
     private lateinit var journalPartitionAdapter: JournalPartitionAdapter
 
     @Autowired
     private lateinit var dataPartitionAdapter: DataPartitionAdapter
+
+    @Autowired
+    private lateinit var nodeIndexPartitionAdapter: CommittedNodeIndexPartitionAdapter
 
     @Autowired
     private lateinit var catalogPartitionAdapter: CatalogPartitionAdapter
@@ -55,12 +67,36 @@ class JournalCommitCommand(val session: Session): ReturningCommand<RevisionNumbe
     override fun execute(): Mono<RevisionNumber> {
         val nextJournalRevisionMono = journalPartitionAdapter.getNextJournalRevision()
         return nextJournalRevisionMono.flatMap { revision ->
-            val nextEntries: Flux<RevisionedNodeRepresentation> = journalPartitionAdapter.getJournalEntrySet(revision)
-            val writeEntries = dataPartitionAdapter.writeNodeRepresentations(nextEntries)
+
+            log.info("Committing journal entries at revision $revision")
+
+            val nextEntries: Flux<JournalEntryNodeRepresentation> = journalPartitionAdapter.getJournalEntrySet(revision).share()
+
+            // we need to both write the committed nodes as well as the node index entries, so create 2 copies of the flux
+            val indexEntryFlux = Flux.from(nextEntries)
+            val writeJournalFlux = Flux.from(nextEntries)
+
+            val writeEntries = dataPartitionAdapter.writeJournalEntries(writeJournalFlux)
+            val writeIndexes = nodeIndexPartitionAdapter.createInverseNodeReferences(createNodeIndexEntries(revision, indexEntryFlux)).then()
+
             val deleteEntries = Mono.defer { journalPartitionAdapter.removeJournalEntrySet(revision) }
             val updateRevision = Mono.defer { catalogPartitionAdapter.setRepositoryRevision(revision) }
             val updateSession = Mono.defer { sessionService.updateSession(session.getSessionID(), revision) }
-            writeEntries.then(deleteEntries).then(updateRevision).then(updateSession).thenReturn(revision)
+            writeEntries.then(writeIndexes).then(deleteEntries).then(updateRevision).then(updateSession).thenReturn(revision)
+        }
+    }
+
+    private fun createNodeIndexEntries(revisionNumber: RevisionNumber, journalEntryFlux: Flux<JournalEntryNodeRepresentation>): Flux<CommittedInverseNodeReferenceRepresentation> {
+        return journalEntryFlux.flatMap { journalEntry ->
+            val addedNodeRefs: Flux<CommittedInverseNodeReferenceRepresentation> = Flux.fromIterable(journalEntry.addedProperties().entries)
+                    .filter { it.value is NodeReference }
+                    .map { it.value as NodeReference}
+                    .map { nodeRef ->
+                        log.debug("Adding node index to ${nodeRef.path} from ${journalEntry.path()} at revision $revisionNumber")
+                        DefaultCommittedInverseNodeReferenceRepresentation(revisionNumber, Path(nodeRef.path), journalEntry.path(), State.NORMAL)
+                    }
+
+            addedNodeRefs
         }
     }
 

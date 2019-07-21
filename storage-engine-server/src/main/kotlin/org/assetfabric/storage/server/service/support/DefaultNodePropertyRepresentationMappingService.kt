@@ -73,7 +73,7 @@ class DefaultNodePropertyRepresentationMappingService: NodePropertyRepresentatio
                     NodePropertyType.DATE -> stringToDate(np.getValue())
                     NodePropertyType.BINARY -> np.getValue()
                     NodePropertyType.BINARY_INPUT -> inputToReference(binaryMap[np.getValue()]!!)
-                    NodePropertyType.NODE -> np.getValue()
+                    NodePropertyType.NODE -> NodeReference(np.getValue())
                     else -> throw RuntimeException("Unknown property type ${np.getType()}")
                 }
                 is MultiValueNodeProperty -> when (np.getType()) {
@@ -82,7 +82,7 @@ class DefaultNodePropertyRepresentationMappingService: NodePropertyRepresentatio
                     NodePropertyType.INTEGER -> TypedList(ListType.INTEGER, np.getValues().map { it.toInt() })
                     NodePropertyType.LONG -> TypedList(ListType.LONG, np.getValues().map { it.toLong() })
                     NodePropertyType.STRING -> TypedList(ListType.STRING, np.getValues())
-                    NodePropertyType.NODE -> TypedList(ListType.NODE, np.getValues())
+                    NodePropertyType.NODE -> TypedList(ListType.NODE, np.getValues().map { NodeReference(it) })
                     else -> throw RuntimeException("Unknown property type ${np.getType()}")
                 } else ->
                     throw RuntimeException("Unknown property $np")
@@ -125,7 +125,7 @@ class DefaultNodePropertyRepresentationMappingService: NodePropertyRepresentatio
                                 ListType.STRING -> value.values.map { it as String }
                                 ListType.BOOLEAN -> value.values.map { it.toString() }
                                 ListType.DATE -> value.values.map { dateToString(it as Date)}
-                                ListType.NODE -> value.values.map { it as String }
+                                ListType.NODE -> value.values.map { (it as NodeReference).path }
                                 ListType.LONG -> value.values.map { it.toString() }
                             }
                         }

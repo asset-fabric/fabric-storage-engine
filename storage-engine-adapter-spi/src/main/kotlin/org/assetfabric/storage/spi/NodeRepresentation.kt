@@ -24,9 +24,9 @@ import org.assetfabric.storage.Path
  */
 interface NodeRepresentation: NodeContentRepresentation {
 
-    var name: String
+    fun name(): String
 
-    var path: Path
+    fun path(): Path
 
     fun contentRepresentation(): NodeContentRepresentation
 

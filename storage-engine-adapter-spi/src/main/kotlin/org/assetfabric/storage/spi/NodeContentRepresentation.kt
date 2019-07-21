@@ -18,6 +18,7 @@
 package org.assetfabric.storage.spi
 
 import org.assetfabric.storage.NodeType
+import org.assetfabric.storage.State
 
 /**
  * The core representation of a [Node] -- its properties and node type, but not specifically
@@ -25,10 +26,12 @@ import org.assetfabric.storage.NodeType
  */
 interface NodeContentRepresentation {
 
-    var state: NodeState
+    fun setState(s: State)
 
-    var nodeType: NodeType
+    fun state(): State
 
-    var properties: MutableMap<String, Any>
+    fun nodeType(): NodeType
+
+    fun properties(): MutableMap<String, Any>
 
 }

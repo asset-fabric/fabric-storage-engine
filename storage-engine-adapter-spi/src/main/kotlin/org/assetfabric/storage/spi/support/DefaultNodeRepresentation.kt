@@ -19,38 +19,37 @@ package org.assetfabric.storage.spi.support
 
 import org.assetfabric.storage.NodeType
 import org.assetfabric.storage.Path
+import org.assetfabric.storage.State
 import org.assetfabric.storage.spi.NodeContentRepresentation
 import org.assetfabric.storage.spi.NodeRepresentation
-import org.assetfabric.storage.spi.NodeState
 
-class DefaultNodeRepresentation(override var name: String, override var path: Path, override var nodeType: NodeType, override var properties: MutableMap<String, Any>, override var state: NodeState): NodeRepresentation {
+class DefaultNodeRepresentation(val path: Path, val repr: NodeContentRepresentation): NodeRepresentation, NodeContentRepresentation by repr {
 
-    constructor(name: String, path: Path, repr: NodeContentRepresentation): this(name, path, NodeType.UNSTRUCTURED, repr.properties, NodeState.NORMAL)
+    constructor(path: Path, nodeType: NodeType, state: State, properties: MutableMap<String, Any>): this(path, DefaultNodeContentRepresentation(nodeType, properties, state))
 
-    override fun toString(): String {
-        return "NodeRepresentation(name='$name', path='$path', properties=$properties)"
-    }
+    override fun name(): String = path.nodeName()
+
+    override fun path(): Path = path
 
     override fun contentRepresentation(): NodeContentRepresentation {
-        return DefaultNodeContentRepresentation(properties)
+        return repr
+    }
+
+    override fun toString(): String {
+        return "NodeRepresentation(name='${name()}', path='$path', properties=${properties()}"
     }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is DefaultNodeRepresentation) return false
 
-        if (name != other.name) return false
         if (path != other.path) return false
-        if (properties != other.properties) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = name.hashCode()
-        result = 31 * result + path.hashCode()
-        result = 31 * result + properties.hashCode()
-        return result
+        return path.hashCode()
     }
 
 

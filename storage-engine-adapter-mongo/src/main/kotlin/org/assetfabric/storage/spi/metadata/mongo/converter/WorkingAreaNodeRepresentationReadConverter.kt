@@ -29,15 +29,14 @@ class WorkingAreaNodeRepresentationReadConverter: Converter<Document, WorkingAre
 
     private val readConverter = NodeContentRepresentationReadConverter()
 
-    override fun convert(doc: Document): WorkingAreaNodeRepresentation? {
-        val name = doc.getString("name")
+    override fun convert(doc: Document): WorkingAreaNodeRepresentation {
         val path = Path(doc.getString("path"))
         val nodeType = NodeType(doc.getString("nodeType"))
         val sessionId = doc.getString("sessionId")
         val revision = doc.getString("revision")
-        val workingAreaRepresentation = readConverter.convert(doc.get("workingAreaRepresentation", Document::class.java))!!
+        val workingAreaRepresentation = readConverter.convert(doc.get("workingAreaRepresentation", Document::class.java))
 
-        return DefaultWorkingAreaNodeRepresentation(sessionId, name, path, RevisionNumber(revision), nodeType, null, workingAreaRepresentation)
+        return DefaultWorkingAreaNodeRepresentation(sessionId, path, RevisionNumber(revision), nodeType, null, workingAreaRepresentation)
     }
 
 }

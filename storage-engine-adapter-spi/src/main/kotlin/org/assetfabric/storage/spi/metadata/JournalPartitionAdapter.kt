@@ -18,7 +18,7 @@
 package org.assetfabric.storage.spi.metadata
 
 import org.assetfabric.storage.RevisionNumber
-import org.assetfabric.storage.spi.RevisionedNodeRepresentation
+import org.assetfabric.storage.spi.JournalEntryNodeRepresentation
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
@@ -32,7 +32,7 @@ interface JournalPartitionAdapter {
      * Creates a new journal entry set containing the given nodes.
      * @param nodeRepresentations the node representations to include in the journal entry
      */
-    fun createJournalEntrySet(nodeRepresentations: Flux<RevisionedNodeRepresentation>): Mono<Boolean>
+    fun createJournalEntrySet(nodeRepresentations: Flux<JournalEntryNodeRepresentation>): Mono<Boolean>
 
     /**
      * Returns the revision number of the next set of journal entries.
@@ -42,7 +42,7 @@ interface JournalPartitionAdapter {
     /**
      * Gets the set of node representations for the given revision number.
      */
-    fun getJournalEntrySet(revision: RevisionNumber): Flux<RevisionedNodeRepresentation>
+    fun getJournalEntrySet(revision: RevisionNumber): Flux<JournalEntryNodeRepresentation>
 
     /**
      * Removes the journal entries corresponding to the given revision number.

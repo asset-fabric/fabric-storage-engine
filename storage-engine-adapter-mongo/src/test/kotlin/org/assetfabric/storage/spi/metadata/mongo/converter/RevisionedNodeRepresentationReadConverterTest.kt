@@ -19,10 +19,9 @@ package org.assetfabric.storage.spi.metadata.mongo.converter
 
 import org.assetfabric.storage.NodeType
 import org.bson.Document
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.fail
 
 @DisplayName("a revisioned node read converter")
 class RevisionedNodeRepresentationReadConverterTest {
@@ -34,7 +33,6 @@ class RevisionedNodeRepresentationReadConverterTest {
     fun testConvertDocument() {
 
         val d = Document()
-        d["name"] = "node name"
         d["path"] = "/node/path"
         d["nodeType"] = NodeType.UNSTRUCTURED.toString()
         d["revision"] = "3fe"
@@ -44,14 +42,8 @@ class RevisionedNodeRepresentationReadConverterTest {
         d["properties"] = props
 
         val repr = converter.convert(d)
-        when (repr) {
-            null -> fail("null representation")
-            else -> {
-                assertEquals(d.getString("name"), repr.name)
-                assertEquals(d.getString("path"), repr.path.toString())
-                assertEquals(d.getString("revision"), repr.revision.toString())
-            }
-        }
+        Assertions.assertEquals(d.getString("path"), repr.path().toString())
+        Assertions.assertEquals(d.getString("revision"), repr.revision().toString())
 
     }
 

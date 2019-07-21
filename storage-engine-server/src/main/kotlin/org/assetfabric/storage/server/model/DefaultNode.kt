@@ -22,6 +22,7 @@ import org.assetfabric.storage.NodeType
 import org.assetfabric.storage.Path
 import org.assetfabric.storage.RevisionNumber
 import org.assetfabric.storage.Session
+import org.assetfabric.storage.State
 import org.assetfabric.storage.server.command.support.NodeCreateCommand
 import org.assetfabric.storage.server.service.MetadataManagerService
 import org.assetfabric.storage.spi.NodeRepresentation
@@ -44,20 +45,22 @@ class DefaultNode(val session: Session, val nodeRepresentation: NodeRepresentati
     @Autowired
     private lateinit var context: ApplicationContext
 
-    override fun name(): String = nodeRepresentation.name
+    override fun name(): String = nodeRepresentation.name()
 
-    override fun path(): Path = nodeRepresentation.path
+    override fun path(): Path = nodeRepresentation.path()
 
-    override fun nodeType(): NodeType = nodeRepresentation.nodeType
+    override fun nodeType(): NodeType = nodeRepresentation.nodeType()
+
+    override fun state(): State = nodeRepresentation.state()
 
     override fun revision(): RevisionNumber? {
         return when(nodeRepresentation) {
-            is RevisionedNodeRepresentation -> (nodeRepresentation as RevisionedNodeRepresentation).revision
+            is RevisionedNodeRepresentation -> (nodeRepresentation as RevisionedNodeRepresentation).revision()
             else -> null
         }
     }
 
-    override fun properties(): Map<String, Any> = nodeRepresentation.properties
+    override fun properties(): Map<String, Any> = nodeRepresentation.properties()
 
     override fun createChild(name: String, nodeType: NodeType, properties: MutableMap<String, Any>): Mono<Node> {
         val command = context.getBean(NodeCreateCommand::class.java, session, path().toString(), name, nodeType, properties)

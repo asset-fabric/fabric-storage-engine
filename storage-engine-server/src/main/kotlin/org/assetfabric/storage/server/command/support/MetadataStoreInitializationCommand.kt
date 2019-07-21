@@ -21,9 +21,9 @@ import org.apache.logging.log4j.LogManager
 import org.assetfabric.storage.NodeType
 import org.assetfabric.storage.Path
 import org.assetfabric.storage.RevisionNumber
+import org.assetfabric.storage.State
 import org.assetfabric.storage.server.command.Command
 import org.assetfabric.storage.server.service.clustering.ClusterSynchronizationService
-import org.assetfabric.storage.spi.NodeState
 import org.assetfabric.storage.spi.metadata.CatalogPartitionAdapter
 import org.assetfabric.storage.spi.metadata.DataPartitionAdapter
 import org.assetfabric.storage.spi.support.DefaultRevisionedNodeRepresentation
@@ -65,7 +65,7 @@ class MetadataStoreInitializationCommand: Command {
                 false -> {
                     logger.info("Initializing repository")
                     val revisionNumber = RevisionNumber(0)
-                    val rootNode = DefaultRevisionedNodeRepresentation("", Path("/"), revisionNumber, NodeType.UNSTRUCTURED, hashMapOf(), NodeState.NORMAL)
+                    val rootNode = DefaultRevisionedNodeRepresentation(Path("/"), revisionNumber, NodeType.UNSTRUCTURED, hashMapOf(), State.NORMAL)
 
                     val initMono = dataAdapter.writeNodeRepresentations(Flux.just(rootNode))
                     val catMono = catalogPartitionAdapter.setRepositoryRevision(revisionNumber)

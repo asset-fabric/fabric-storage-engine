@@ -49,6 +49,18 @@ class MongoWorkingAreaPartitionAdapter: WorkingAreaPartitionAdapter {
         return provider.template.save(representation, workingAreaCollectionName)
     }
 
+    override fun updateWorkingAreaRepresentation(representation: WorkingAreaNodeRepresentation): Mono<WorkingAreaNodeRepresentation> {
+        // TODO: is there a more efficient way to do this?
+        var query = Query()
+        val criteria = Criteria().andOperator(
+                Criteria.where("sessionId").`is`(representation.sessionId()),
+                Criteria.where("path").`is`(representation.path().toString()))
+        query = query.addCriteria(criteria)
+        return provider.template.remove(query, workingAreaCollectionName).flatMap {
+            createNodeRepresentation(representation)
+        }
+    }
+
     override fun nodeRepresentation(sessionId: String, path: String): Mono<WorkingAreaNodeRepresentation> {
         var query = Query()
         val criteria = Criteria().andOperator(

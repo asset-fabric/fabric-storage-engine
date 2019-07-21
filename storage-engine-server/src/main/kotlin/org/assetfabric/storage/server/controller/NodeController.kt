@@ -26,6 +26,7 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.multipart.Part
 import org.springframework.web.bind.annotation.CookieValue
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
@@ -54,5 +55,8 @@ interface NodeController {
 
     @PutMapping(consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun updateNode(@CookieValue(API_TOKEN) token: String, @RequestParam("path") path: String, @RequestBody request: Flux<Part>): Mono<ResponseEntity<NodeRepresentation>>
+
+    @DeleteMapping
+    fun deleteNode(@CookieValue(API_TOKEN) token: String, @RequestParam("path") path: String): Mono<ResponseEntity<Void>>
 
 }

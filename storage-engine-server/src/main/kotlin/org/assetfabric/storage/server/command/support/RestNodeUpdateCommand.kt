@@ -74,8 +74,8 @@ class RestNodeUpdateCommand(session: Session, nodePath: Path, requestParts: Flux
                     val retNode = NodeRepresentation()
                     retNode.setName(nodeName)
                     retNode.setPath(nodePath.toString())
-                    retNode.setNodeType(nodeRepresentation.nodeType.toString())
-                    retNode.setProperties(nodeMapper.getExternalPropertyRepresentation(nodeRepresentation.properties))
+                    retNode.setNodeType(nodeRepresentation.nodeType().toString())
+                    retNode.setProperties(nodeMapper.getExternalPropertyRepresentation(nodeRepresentation.properties()))
                     retNode
                 }
 

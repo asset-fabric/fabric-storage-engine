@@ -17,47 +17,18 @@
 
 package org.assetfabric.storage.spi.metadata.mongo.converter
 
-import org.assetfabric.storage.BinaryReference
-import org.assetfabric.storage.TypedList
 import org.assetfabric.storage.spi.NodeContentRepresentation
 import org.bson.Document
 import org.springframework.core.convert.converter.Converter
 
-class NodeContentRepresentationWriteConverter: Converter<NodeContentRepresentation, Document> {
+class NodeContentRepresentationWriteConverter: AbstractWriteConverter(), Converter<NodeContentRepresentation, Document> {
 
-    override fun convert(representation: NodeContentRepresentation): Document? {
+    override fun convert(representation: NodeContentRepresentation): Document {
         val doc = Document()
-        doc["properties"] = documentFromMap(representation.properties)
-        doc["state"] = representation.state.toString()
-        doc["nodeType"] = representation.nodeType.toString()
+        doc["properties"] = documentFromMap(representation.properties())
+        doc["state"] = representation.state().toString()
+        doc["nodeType"] = representation.nodeType().toString()
         return doc
-    }
-
-    private fun documentFromMap(map: Map<String, Any>): Document {
-        val doc = Document()
-        map.forEach { key, value ->
-            doc.set(key, itemForValue(value))
-        }
-        return doc
-    }
-
-    private fun itemForValue(value: Any): Any {
-        return when(value) {
-            is BinaryReference -> {
-                val doc = Document()
-                doc.set("type", "BinaryReference")
-                doc.set("path", value.path)
-                doc
-            }
-            is TypedList -> {
-                val doc = Document()
-                doc.set("type", "TypedList")
-                doc.set("listType", value.listType.toString())
-                doc.set("values", value.values)
-                doc
-            }
-            else -> value
-        }
     }
 
 }

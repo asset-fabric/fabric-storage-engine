@@ -25,13 +25,13 @@ class NodeRepresentationWriteConverter: Converter<NodeRepresentation, Document> 
 
     private val coreWriter = NodeContentRepresentationWriteConverter()
 
-    override fun convert(representation: NodeRepresentation): Document? {
-        val doc = coreWriter.convert(representation.contentRepresentation())!!
-        doc["name"] = representation.name
-        doc["path"] = representation.path.toString()
-        doc["parentPath"] = when(representation.path.isRoot()) {
+    override fun convert(representation: NodeRepresentation): Document {
+        val doc = coreWriter.convert(representation.contentRepresentation())
+        doc["name"] = representation.name()
+        doc["path"] = representation.path().toString()
+        doc["parentPath"] = when(representation.path().isRoot()) {
             true -> ""
-            false -> representation.path.parentPath().toString()
+            false -> representation.path().parentPath().toString()
         }
         return doc
     }

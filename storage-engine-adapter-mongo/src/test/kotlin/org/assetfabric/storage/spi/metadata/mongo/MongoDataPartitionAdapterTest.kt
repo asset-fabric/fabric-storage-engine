@@ -18,10 +18,11 @@
 package org.assetfabric.storage.spi.metadata.mongo
 
 import org.apache.logging.log4j.LogManager
+import org.assetfabric.storage.NodeReference
 import org.assetfabric.storage.NodeType
 import org.assetfabric.storage.Path
 import org.assetfabric.storage.RevisionNumber
-import org.assetfabric.storage.spi.NodeState
+import org.assetfabric.storage.State
 import org.assetfabric.storage.spi.RevisionedNodeRepresentation
 import org.assetfabric.storage.spi.metadata.DataPartitionAdapter
 import org.assetfabric.storage.spi.support.DefaultRevisionedNodeRepresentation
@@ -57,8 +58,13 @@ class MongoDataPartitionAdapterTest {
     @Autowired
     private lateinit var adapter: DataPartitionAdapter
 
-    private fun createRepresentation(name: String, path: Path, revision: RevisionNumber): RevisionedNodeRepresentation {
-        return DefaultRevisionedNodeRepresentation(name, path, revision, NodeType.UNSTRUCTURED, hashMapOf(), NodeState.NORMAL)
+    private fun createRepresentation(path: Path, revision: RevisionNumber): RevisionedNodeRepresentation {
+        val map = mutableMapOf(
+                "stringProp" to "hi",
+                "stringListProp" to listOf("a", "b", "c"),
+                "nodeRefProp" to NodeReference("/some/node")
+        )
+        return DefaultRevisionedNodeRepresentation(path, revision, NodeType.UNSTRUCTURED, map, State.NORMAL)
     }
 
     @Test
@@ -67,7 +73,7 @@ class MongoDataPartitionAdapterTest {
         val revision = RevisionNumber(2)
         val count = 10
         val nodes = Flux.range(0, count).map { index ->
-            createRepresentation("node$index", Path("/test/node$index"), revision)
+            createRepresentation(Path("/test/node$index"), revision)
         }
 
         adapter.writeNodeRepresentations(nodes).block()
@@ -85,7 +91,7 @@ class MongoDataPartitionAdapterTest {
         val revision = RevisionNumber(2)
         val count = 10
         val nodes = Flux.range(0, count).map { index ->
-            createRepresentation("node$index", Path("/node$index"), revision)
+            createRepresentation(Path("/node$index"), revision)
         }
         adapter.writeNodeRepresentations(nodes).block()
         log.debug("Wrote child representations")
@@ -101,14 +107,14 @@ class MongoDataPartitionAdapterTest {
         val revision = RevisionNumber(2)
         val count = 3
         val nodes = Flux.range(0, count).map { index ->
-            createRepresentation("node", Path("/node"), revision.plus(index))
+            createRepresentation(Path("/node"), revision.plus(index))
         }
         adapter.writeNodeRepresentations(nodes).block()
         log.debug("Wrote child representations")
         val retList = adapter.nodeChildRepresentations(revision.plus(1), "/").collectList().block()
         assertNotNull(retList, "Null children returned")
         assertEquals(1, retList!!.size)
-        assertEquals(RevisionNumber(3), retList.get(0).revision)
+        assertEquals(RevisionNumber(3), retList.get(0).revision())
     }
 
 }

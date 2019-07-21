@@ -36,7 +36,6 @@ class NodeRepresentationReadConverterTest {
 
     private fun constructMockDocument(): Document {
         val d = Document()
-        d["name"] = "node name"
         d["path"] = "/node/path"
         d["nodeType"] = NodeType.UNSTRUCTURED.toString()
         d["revision"] = "3fe"
@@ -61,16 +60,9 @@ class NodeRepresentationReadConverterTest {
         binaryRefDoc["path"] = "/some/binary/path"
 
         val nodeRefLatestDoc = Document()
-        props["nodeRefLatestProp"] = nodeRefLatestDoc
+        props["nodeRefProp"] = nodeRefLatestDoc
         nodeRefLatestDoc["type"] = "NodeReference"
         nodeRefLatestDoc["path"] = "/some/node"
-        nodeRefLatestDoc["snapshot"] = null
-
-        val nodeRefSnapshotDoc = Document()
-        props["nodeRefSnapshotProp"] = nodeRefSnapshotDoc
-        nodeRefSnapshotDoc["type"] = "NodeReference"
-        nodeRefSnapshotDoc["path"] = "/some/node"
-        nodeRefSnapshotDoc["snapshot"] = "ab4ea"
 
         return d
     }
@@ -78,115 +70,102 @@ class NodeRepresentationReadConverterTest {
     private fun getRepresentation(): NodeRepresentation? = converter.convert(constructMockDocument())
 
     @Test
-    @DisplayName("should read a representation's name")
-    fun readName() {
-        val repr = getRepresentation()
-        assertEquals("node name", repr!!.name)
-    }
-
-    @Test
     @DisplayName("should read a representation's path")
     fun readPath() {
         val repr = getRepresentation()
-        assertEquals("/node/path", repr!!.path.toString())
+        assertEquals("/node/path", repr!!.path().toString())
     }
 
     @Test
     @DisplayName("should read a representation's node type")
     fun readNodeType() {
         val repr = getRepresentation()
-        assertEquals(NodeType.UNSTRUCTURED, repr!!.nodeType)
+        assertEquals(NodeType.UNSTRUCTURED, repr!!.nodeType())
     }
 
     @Test
     @DisplayName("should read a representation's int property")
     fun readIntProp() {
         val repr = getRepresentation()
-        assertEquals(2, repr!!.properties["intProp"])
+        assertEquals(2, repr!!.properties()["intProp"])
     }
 
     @Test
     @DisplayName("should read a representation's int list property")
     fun readIntListProp() {
         val repr = getRepresentation()
-        assertEquals(listOf(1, 2, 3), repr!!.properties["intListProp"])
+        assertEquals(listOf(1, 2, 3), repr!!.properties()["intListProp"])
     }
 
     @Test
     @DisplayName("should read a representation's long property")
     fun readLongProp() {
         val repr = getRepresentation()
-        assertEquals(Long.MAX_VALUE, repr!!.properties["longProp"])
+        assertEquals(Long.MAX_VALUE, repr!!.properties()["longProp"])
     }
 
     @Test
     @DisplayName("should read a representation's long list property")
     fun readLongListProp() {
         val repr = getRepresentation()
-        assertEquals(listOf(Long.MAX_VALUE, Long.MAX_VALUE), repr!!.properties["longListProp"])
+        assertEquals(listOf(Long.MAX_VALUE, Long.MAX_VALUE), repr!!.properties()["longListProp"])
     }
 
     @Test
     @DisplayName("should read a representation's string property")
     fun readStringProp() {
         val repr = getRepresentation()
-        assertEquals("stringval", repr!!.properties["stringProp"])
+        assertEquals("stringval", repr!!.properties()["stringProp"])
     }
 
     @Test
     @DisplayName("should read a representation's string list property")
     fun readStringListProp() {
         val repr = getRepresentation()
-        assertEquals(listOf("a", "b", "c"), repr!!.properties["stringListProp"])
+        assertEquals(listOf("a", "b", "c"), repr!!.properties()["stringListProp"])
     }
 
     @Test
     @DisplayName("should read a representation's double property")
     fun readDoubleProp() {
         val repr = getRepresentation()
-        assertEquals(Double.MAX_VALUE, repr!!.properties["doubleProp"])
+        assertEquals(Double.MAX_VALUE, repr!!.properties()["doubleProp"])
     }
 
     @Test
     @DisplayName("should read a representation's double list property")
     fun readDoubleListProp() {
         val repr = getRepresentation()
-        assertEquals(listOf(Double.MAX_VALUE, Double.MAX_VALUE), repr!!.properties["doubleListProp"])
+        assertEquals(listOf(Double.MAX_VALUE, Double.MAX_VALUE), repr!!.properties()["doubleListProp"])
     }
 
     @Test
     @DisplayName("should read a representation's date property")
     fun readDateProp() {
         val repr = getRepresentation()
-        assertEquals(testDate, repr!!.properties["dateProp"])
+        assertEquals(testDate, repr!!.properties()["dateProp"])
     }
 
     @Test
     @DisplayName("should read a representation's boolean property")
     fun readBooleanProp() {
         val repr = getRepresentation()
-        assertEquals(false, repr!!.properties["booleanProp"])
+        assertEquals(false, repr!!.properties()["booleanProp"])
     }
 
     @Test
     @DisplayName("should read a representation's binary reference property")
     fun readBinaryRefProp() {
         val repr = getRepresentation()
-        assertEquals(BinaryReference("/some/binary/path"), repr!!.properties["binaryRefProp"])
+        assertEquals(BinaryReference("/some/binary/path"), repr!!.properties()["binaryRefProp"])
     }
 
     @Test
-    @DisplayName("should read a representation's node reference follow-latest property")
+    @DisplayName("should read a representation's node reference property")
     fun reaNodeRefLatestProp() {
         val repr = getRepresentation()
-        assertEquals(NodeReference("/some/node", null), repr!!.properties["nodeRefLatestProp"])
+        assertEquals(NodeReference("/some/node"), repr!!.properties()["nodeRefProp"])
     }
 
-    @Test
-    @DisplayName("should read a representation's node reference follow-snapshot property")
-    fun reaNodeRefSnapshotProp() {
-        val repr = getRepresentation()
-        assertEquals(NodeReference("/some/node", null), repr!!.properties["nodeRefSnapshotProp"])
-    }
 
 }

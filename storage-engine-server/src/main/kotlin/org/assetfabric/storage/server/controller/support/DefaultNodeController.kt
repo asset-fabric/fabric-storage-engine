@@ -23,7 +23,9 @@ import org.assetfabric.storage.Node
 import org.assetfabric.storage.NodeModificationException
 import org.assetfabric.storage.NodeNotFoundException
 import org.assetfabric.storage.Path
+import org.assetfabric.storage.State
 import org.assetfabric.storage.rest.NodeRepresentation
+import org.assetfabric.storage.server.command.support.NodeDeleteCommand
 import org.assetfabric.storage.server.command.support.RestNodeCreateCommand
 import org.assetfabric.storage.server.command.support.RestNodeUpdateCommand
 import org.assetfabric.storage.server.controller.NodeController
@@ -107,12 +109,18 @@ class DefaultNodeController: NodeController {
 
         val nodeMono: Mono<Node> = sessionExecutor.executeWithSession(token) { session -> session.node(nodePath) }
         return nodeMono.map { node ->
-            val retNode = NodeRepresentation()
-            retNode.setNodeType(node.nodeType().toString())
-            retNode.setName(node.name())
-            retNode.setPath(node.path().toString())
-            retNode.setProperties(nodeMapper.getExternalPropertyRepresentation(node.properties()))
-            ResponseEntity.status(HttpStatus.OK).body(retNode)
+            when (node.state()) {
+                State.NORMAL -> {
+                    val retNode = NodeRepresentation()
+                    retNode.setNodeType(node.nodeType().toString())
+                    retNode.setName(node.name())
+                    retNode.setPath(node.path().toString())
+                    retNode.setProperties(nodeMapper.getExternalPropertyRepresentation(node.properties()))
+                    ResponseEntity.status(HttpStatus.OK).body(retNode)
+                }
+                State.DELETED -> ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+            }
+
         }.switchIfEmpty(Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).build()))
     }
 
@@ -134,5 +142,12 @@ class DefaultNodeController: NodeController {
             }
             Mono.just(ResponseEntity.status(HttpStatus.OK).body(representationFlux))
         }.switchIfEmpty(Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).build()))
+    }
+
+    override fun deleteNode(token: String, path: String): Mono<ResponseEntity<Void>> {
+        return sessionExecutor.executeWithSession(token) { session ->
+            val deleteCommand = context.getBean(NodeDeleteCommand::class.java, session, path)
+            deleteCommand.execute()
+        }.then(Mono.just(ResponseEntity.ok().build()))
     }
 }

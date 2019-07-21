@@ -25,26 +25,39 @@ import org.assetfabric.storage.spi.NodeRepresentation
 import org.assetfabric.storage.spi.WorkingAreaNodeRepresentation
 
 class DefaultWorkingAreaNodeRepresentation(
-        override var sessionId: String,
-        override var name: String,
-        override var path: Path,
-        override var revision: RevisionNumber,
-        override var nodeType: NodeType,
-        override var permanentRepresentation: NodeContentRepresentation?,
-        override var workingAreaRepresentation: NodeContentRepresentation): WorkingAreaNodeRepresentation {
+        val sessionId: String,
+        val path: Path,
+        val revision: RevisionNumber,
+        val nodeType: NodeType,
+        val permanentRepresentation: NodeContentRepresentation?,
+        val workingAreaRepresentation: NodeContentRepresentation): WorkingAreaNodeRepresentation {
+
+    override fun sessionId(): String = sessionId
+
+    override fun name(): String = path.nodeName()
+
+    override fun path(): Path = path
+
+    override fun nodeType(): NodeType = nodeType
+
+    override fun revision(): RevisionNumber = revision
+
+    override fun permanentRepresentation(): NodeContentRepresentation? = permanentRepresentation
+
+    override fun workingAreaRepresentation(): NodeContentRepresentation = workingAreaRepresentation
 
     override fun effectiveNodeRepresentation(): NodeRepresentation {
         val props = mutableMapOf<String, Any>()
         if (permanentRepresentation != null) {
-            permanentRepresentation!!.properties.forEach {
+            permanentRepresentation.properties().forEach {
                 props[it.key] = it.value
             }
         }
-        workingAreaRepresentation.properties.forEach {
+        workingAreaRepresentation.properties().forEach {
             props[it.key] = it.value
         }
 
-        return DefaultNodeRepresentation(name, path, nodeType, props, workingAreaRepresentation.state)
+        return DefaultNodeRepresentation(path, nodeType, workingAreaRepresentation.state(), props)
     }
 
 }

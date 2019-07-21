@@ -20,11 +20,14 @@ package org.assetfabric.storage.server.command.support
 import org.apache.logging.log4j.LogManager
 import org.assetfabric.storage.Session
 import org.assetfabric.storage.server.command.ReturningCommand
+import org.assetfabric.storage.spi.JournalEntryNodeRepresentation
 import org.assetfabric.storage.spi.NodeRepresentation
 import org.assetfabric.storage.spi.RevisionedNodeRepresentation
+import org.assetfabric.storage.spi.WorkingAreaNodeRepresentation
 import org.assetfabric.storage.spi.metadata.CatalogPartitionAdapter
 import org.assetfabric.storage.spi.metadata.JournalPartitionAdapter
 import org.assetfabric.storage.spi.metadata.WorkingAreaPartitionAdapter
+import org.assetfabric.storage.spi.support.DefaultJournalEntryNodeRepresentation
 import org.assetfabric.storage.spi.support.DefaultRevisionedNodeRepresentation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.config.BeanDefinition
@@ -63,15 +66,15 @@ class JournalEntryCreateCommand(val session: Session): ReturningCommand<Boolean>
 
             log.debug("Creating new journal entries at revision $revisionNumber")
 
-            val nodeRepresentations: Flux<NodeRepresentation> = workingAreaPartitionAdapter.getWorkingAreaRepresentations(session.getSessionID()).map { workingRepresentation ->
-                workingRepresentation.effectiveNodeRepresentation()
+            val nodeRepresentations: Flux<WorkingAreaNodeRepresentation> = workingAreaPartitionAdapter.getWorkingAreaRepresentations(session.getSessionID())
+
+            val journalRepresentations: Flux<JournalEntryNodeRepresentation> = nodeRepresentations.map { nodeRepresentation ->
+                DefaultJournalEntryNodeRepresentation(nodeRepresentation.sessionId(), nodeRepresentation.path(), nextRevision, nodeRepresentation.nodeType(), nodeRepresentation.permanentRepresentation(), nodeRepresentation.workingAreaRepresentation())
             }
 
-            val revisionedRepresentations: Flux<RevisionedNodeRepresentation> = nodeRepresentations.map { nodeRepresentation ->
-                DefaultRevisionedNodeRepresentation(nextRevision, nodeRepresentation)
+            journalPartitionAdapter.createJournalEntrySet(journalRepresentations).doAfterSuccessOrError { success, error ->
+                log.debug("Journal entry creation complete")
             }
-
-            journalPartitionAdapter.createJournalEntrySet(revisionedRepresentations)
         }
 
     }

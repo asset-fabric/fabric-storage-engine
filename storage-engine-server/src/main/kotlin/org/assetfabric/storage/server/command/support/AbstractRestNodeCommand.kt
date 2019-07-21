@@ -34,7 +34,6 @@ import org.springframework.http.codec.multipart.FilePart
 import org.springframework.http.codec.multipart.Part
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import java.util.stream.Collectors
 
 abstract class AbstractRestNodeCommand(val session: Session, val nodePath: Path, val requestParts: Flux<Part>): ReturningCommand<NodeRepresentation> {
 

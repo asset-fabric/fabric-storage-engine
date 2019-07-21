@@ -18,6 +18,7 @@
 package org.assetfabric.storage.spi.metadata
 
 import org.assetfabric.storage.RevisionNumber
+import org.assetfabric.storage.spi.JournalEntryNodeRepresentation
 import org.assetfabric.storage.spi.RevisionedNodeRepresentation
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -28,6 +29,11 @@ interface DataPartitionAdapter {
      * Writes the given node representations into the data partition.
      */
     fun writeNodeRepresentations(representations: Flux<RevisionedNodeRepresentation>): Mono<Void>
+
+    /**
+     * Writes the given journal entries into the data partition.
+     */
+    fun writeJournalEntries(entries: Flux<JournalEntryNodeRepresentation>): Mono<Void>
 
     /**
      * Returns the node representation for the given path, visible at the given revision.

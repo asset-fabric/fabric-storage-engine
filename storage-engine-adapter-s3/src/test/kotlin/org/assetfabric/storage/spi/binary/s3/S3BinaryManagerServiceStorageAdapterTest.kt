@@ -122,7 +122,7 @@ class S3BinaryManagerServiceStorageAdapterTest {
 
         val mockListing = mock(ObjectListing::class.java)
         val paths = listOf("ab/cd/ef/gh/1", "ab/cd/ef/gh/2")
-        val summaryList = paths.map { path ->
+        val summaryList = paths.map {
             val summary = mock(S3ObjectSummary::class.java)
             `when`(summary.key).thenReturn("$permanentPrefix/ab/cd/ef/gh/1")
             `when`(summary.size).thenReturn(10)
