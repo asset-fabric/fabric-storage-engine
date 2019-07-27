@@ -24,7 +24,6 @@ import io.restassured.specification.RequestSpecification
 import org.apache.logging.log4j.LogManager
 import org.assetfabric.storage.server.controller.Constants
 import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.test.annotation.DirtiesContext
@@ -42,7 +41,7 @@ abstract class RestAbstractTest {
     private val nodeUrl = "/v1/node"
 
     @Value("\${local.server.port}")
-    private lateinit var port: Integer
+    protected lateinit var port: Integer
 
     @Value("\${test.user}")
     private lateinit var user: String
@@ -54,11 +53,6 @@ abstract class RestAbstractTest {
 
     protected inline fun <reified T> ResponseBodyExtractionOptions.to(): T {
         return this.`as`(T::class.java)
-    }
-
-    @BeforeEach
-    private fun init() {
-        RestAssured.port = port.toInt()
     }
 
     protected fun getLoginToken(): String {
