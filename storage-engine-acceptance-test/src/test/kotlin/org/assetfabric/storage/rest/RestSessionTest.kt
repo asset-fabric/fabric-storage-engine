@@ -21,10 +21,12 @@ import io.restassured.RestAssured
 import org.assetfabric.storage.NodeType
 import org.assetfabric.storage.server.Application
 import org.assetfabric.storage.server.controller.Constants.API_TOKEN
+import org.assetfabric.storage.server.service.support.DefaultMetadataManagerService
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpStatus
 import org.springframework.test.context.junit.jupiter.SpringExtension
@@ -34,9 +36,14 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 @DisplayName("the session controller")
 class RestSessionTest: RestAbstractTest() {
 
+    @Autowired
+    private lateinit var metadataManager: DefaultMetadataManagerService
+
     @Test
     @DisplayName("should commit working area changes when the session is committed")
     fun testJournalEntryCreation() {
+        metadataManager.reset()
+
         val token = getLoginToken()
 
         for (num in 0..40) {

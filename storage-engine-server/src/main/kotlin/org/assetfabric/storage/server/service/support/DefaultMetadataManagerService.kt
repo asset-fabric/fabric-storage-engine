@@ -281,7 +281,7 @@ class DefaultMetadataManagerService : MetadataManagerService {
         val workingAreaRemoveMono = Mono.defer { workingAreaPartitionAdapter.deleteWorkingAreaRepresentations(session.getSessionID()) }
         val workingAreaIndexMono = Mono.defer { workingAreaNodeIndexPartitionAdapter.deleteNodeReferences(session.getSessionID()) }
 
-        return journalCreateCommand.execute() .then(journalCommitCommand.execute()).flatMap { revisionNumber ->
+        return journalCreateCommand.execute().then(journalCommitCommand.execute()).flatMap { revisionNumber ->
             (session as DefaultSession).setRevision(revisionNumber)
             workingAreaRemoveMono.then(workingAreaIndexMono)
         }
