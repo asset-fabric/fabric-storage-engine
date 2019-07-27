@@ -38,6 +38,13 @@ interface CommittedNodeIndexPartitionAdapter {
     fun nodeReferences(nodePath: Path, revision: RevisionNumber): Flux<CommittedInverseNodeReferenceRepresentation>
 
     /**
+     * Returns the current references to the given node and any of its children at the given revision.
+     * @param nodePath the path of the node for which references, and references to its children, should be returned
+     * @param revision the revision at which the node references should be returned
+     */
+    fun nodeReferencesAtOrBelow(nodePath: Path, revision: RevisionNumber): Flux<CommittedInverseNodeReferenceRepresentation>
+
+    /**
      * Removes all entries from the node index. USE WITH CAUTION!
      */
     fun reset(): Mono<Void>

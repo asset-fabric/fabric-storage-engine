@@ -72,7 +72,7 @@ class DefaultNodePropertyRepresentationMappingService: NodePropertyRepresentatio
                     NodePropertyType.BOOLEAN -> np.getValue().toBoolean()
                     NodePropertyType.DATE -> stringToDate(np.getValue())
                     NodePropertyType.BINARY -> np.getValue()
-                    NodePropertyType.BINARY_INPUT -> inputToReference(binaryMap[np.getValue()]!!)
+                    NodePropertyType.BINARY_INPUT -> binaryMap.getValue(np.getValue())
                     NodePropertyType.NODE -> NodeReference(np.getValue())
                     else -> throw RuntimeException("Unknown property type ${np.getType()}")
                 }
@@ -151,10 +151,6 @@ class DefaultNodePropertyRepresentationMappingService: NodePropertyRepresentatio
     private fun binaryReferenceToUrl(br: BinaryReference): BinaryReference {
         val path = br.path
         return BinaryReference("http://$host:$port/v1/binary?path=$path")
-    }
-
-    private fun inputToReference(b: InputStreamWithLength): BinaryReference {
-        return BinaryReference(binaryManagerService.createFile(b))
     }
 
 }

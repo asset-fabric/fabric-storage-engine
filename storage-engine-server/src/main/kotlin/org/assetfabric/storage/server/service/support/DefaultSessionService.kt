@@ -18,10 +18,11 @@
 package org.assetfabric.storage.server.service.support
 
 import org.apache.logging.log4j.LogManager
+import org.assetfabric.storage.Credentials
 import org.assetfabric.storage.RevisionNumber
 import org.assetfabric.storage.Session
-import org.assetfabric.storage.rest.Credentials
 import org.assetfabric.storage.server.model.DefaultSession
+import org.assetfabric.storage.server.service.MetadataManagerService
 import org.assetfabric.storage.server.service.SessionService
 import org.assetfabric.storage.server.service.clustering.ClusterSessionInfo
 import org.assetfabric.storage.server.service.clustering.ClusterSynchronizationService
@@ -50,6 +51,9 @@ class DefaultSessionService: SessionService {
     @Autowired
     private lateinit var clusterSynchronizationService: ClusterSynchronizationService
 
+    @Autowired
+    private lateinit var metadataManagerService: MetadataManagerService
+
     private lateinit var providerManager: ProviderManager
 
     @PostConstruct
@@ -58,8 +62,8 @@ class DefaultSessionService: SessionService {
         log.debug("Initialized provider manager with providers $authProviders")
     }
 
-    override fun getSession(credentials: Credentials, revision: RevisionNumber): Mono<Session> {
-        log.info("Getting session for user {} at repository revision {}", credentials.username, revision)
+    override fun getSession(credentials: Credentials): Mono<Session> {
+        log.info("Getting session for user {}", credentials.username)
         if (credentials.username == null || credentials.password == null) {
             return Mono.empty()
         } else {
@@ -68,12 +72,14 @@ class DefaultSessionService: SessionService {
                 val authCredentials = providerManager.authenticate(creds)
                 return when (authCredentials.isAuthenticated) {
                     true -> {
-                        val sessionKey = UUID.randomUUID().toString()
-                        val sessionInfo = ClusterSessionInfo(sessionKey, authCredentials.name, revision.toString())
-                        val session = applicationContext.getBean(DefaultSession::class.java, sessionKey, authCredentials.name, revision)
-                        log.info("Adding session $sessionKey at revision $revision")
-                        clusterSynchronizationService.addSessionInfo(sessionKey, sessionInfo)
-                        Mono.just(session)
+                        metadataManagerService.repositoryRevision().map { revision ->
+                            val sessionKey = UUID.randomUUID().toString()
+                            val sessionInfo = ClusterSessionInfo(sessionKey, authCredentials.name, revision.toString())
+                            val session = applicationContext.getBean(DefaultSession::class.java, sessionKey, authCredentials.name, revision)
+                            log.info("Adding session $sessionKey at revision $revision")
+                            clusterSynchronizationService.addSessionInfo(sessionKey, sessionInfo)
+                            session
+                        }
                     }
                     false -> Mono.empty()
                 }

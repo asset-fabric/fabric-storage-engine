@@ -40,14 +40,14 @@ class JournalEntryNodeRepresenationWriteConverterTest {
         val writer = JournalEntryNodeRepresentationWriteConverter()
         val priorNodeContent = DefaultNodeContentRepresentation()
 
-        priorNodeContent.properties["stringProp"] = "testing"
-        priorNodeContent.properties["intListProp"] = TypedList(ListType.INTEGER, listOf(1, 2, 3, 4))
-        priorNodeContent.properties["nodeRef"] = NodeReference("/node2")
-        priorNodeContent.properties["binRef"] = BinaryReference("some/binary/path")
+        priorNodeContent.properties()["stringProp"] = "testing"
+        priorNodeContent.properties()["intListProp"] = TypedList(ListType.INTEGER, listOf(1, 2, 3, 4))
+        priorNodeContent.properties()["nodeRef"] = NodeReference("/node2")
+        priorNodeContent.properties()["binRef"] = BinaryReference("some/binary/path")
 
         val newNodeContent = DefaultNodeContentRepresentation()
-        newNodeContent.properties["booleanProp"] = true
-        newNodeContent.properties["stringProp"] = "testing again"
+        newNodeContent.properties()["booleanProp"] = true
+        newNodeContent.properties()["stringProp"] = "testing again"
 
         val journalEntry = DefaultJournalEntryNodeRepresentation("testSession", Path("/node1"), RevisionNumber(1), NodeType.UNSTRUCTURED, priorNodeContent, newNodeContent)
 
@@ -58,15 +58,15 @@ class JournalEntryNodeRepresenationWriteConverterTest {
 
         val priorContent = doc["priorContent"] as Document
         val priorProps = priorContent["properties"] as Document
-        assertEquals(priorNodeContent.properties["stringProp"], priorProps["stringProp"])
-        assertEquals((priorNodeContent.properties["intListProp"] as TypedList).values, (priorProps["intListProp"] as Document)["values"])
-        assertEquals((priorNodeContent.properties["nodeRef"] as NodeReference).path, (priorProps["nodeRef"] as Document)["path"])
-        assertEquals((priorNodeContent.properties["binRef"] as BinaryReference).path, (priorProps["binRef"] as Document)["path"])
+        assertEquals(priorNodeContent.properties()["stringProp"], priorProps["stringProp"])
+        assertEquals((priorNodeContent.properties()["intListProp"] as TypedList).values, (priorProps["intListProp"] as Document)["values"])
+        assertEquals((priorNodeContent.properties()["nodeRef"] as NodeReference).path, (priorProps["nodeRef"] as Document)["path"])
+        assertEquals((priorNodeContent.properties()["binRef"] as BinaryReference).path, (priorProps["binRef"] as Document)["path"])
 
         val currentContent = doc["currentContent"] as Document
         val currentProps = currentContent["properties"] as Document
-        assertEquals(newNodeContent.properties["booleanProp"], currentProps["booleanProp"])
-        assertEquals(newNodeContent.properties["stringProp"], currentProps["stringProp"])
+        assertEquals(newNodeContent.properties()["booleanProp"], currentProps["booleanProp"])
+        assertEquals(newNodeContent.properties()["stringProp"], currentProps["stringProp"])
 
     }
 

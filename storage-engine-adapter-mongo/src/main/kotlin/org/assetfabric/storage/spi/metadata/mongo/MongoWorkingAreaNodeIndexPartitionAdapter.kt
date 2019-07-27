@@ -30,6 +30,7 @@ import org.springframework.data.mongodb.core.query.Query
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import java.util.regex.Pattern
 
 @Component
 @ConditionalOnProperty("assetfabric.storage.metadata.adapter.type", havingValue = "mongo")
@@ -47,14 +48,24 @@ class MongoWorkingAreaNodeIndexPartitionAdapter: WorkingAreaNodeIndexPartitionAd
     }
 
     override fun nodeReferences(sessionId: String, nodePath: Path): Flux<WorkingAreaInverseNodeReferenceRepresentation> {
-        var query = Query()
-        val criteria = Criteria().andOperator(
-                Criteria.where("sessionId").`is`(sessionId),
-                Criteria.where("nodePath").`is`(nodePath.toString()))
-        query = query.addCriteria(criteria)
-                .with(Sort(Sort.Direction.ASC, "referringNodePath"))
+        return nodeReferencesFor(sessionId, Criteria.where("nodePath").`is`(nodePath.toString()))
+    }
 
+    override fun nodeReferencesAtOrBelow(sessionId: String, nodePath: Path): Flux<WorkingAreaInverseNodeReferenceRepresentation> {
+        val criteria = Criteria()
+                .regex(Pattern.compile("^${nodePath.path}"))
+        return nodeReferencesFor(sessionId, criteria)
+    }
+
+    private fun nodeReferencesFor(sessionId: String, criteria: Criteria): Flux<WorkingAreaInverseNodeReferenceRepresentation> {
+        val topCriteria = Criteria()
+                .andOperator(
+                        Criteria.where("sessionId").`is`(sessionId),
+                        criteria)
+        var query = Query()
+        query = query.addCriteria(topCriteria).with(Sort(Sort.Direction.ASC, "referringNodePath"))
         return provider.template.find(query, WorkingAreaInverseNodeReferenceRepresentation::class.java, workingAreaCollectionName)
+
     }
 
     override fun deleteNodeReferences(sessionId: String): Mono<Void> {

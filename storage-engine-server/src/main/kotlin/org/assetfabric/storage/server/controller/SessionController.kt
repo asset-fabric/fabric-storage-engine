@@ -23,7 +23,7 @@ import io.swagger.annotations.ApiParam
 import io.swagger.annotations.ApiResponse
 import io.swagger.annotations.ApiResponses
 import io.swagger.annotations.ResponseHeader
-import org.assetfabric.storage.rest.Credentials
+import org.assetfabric.storage.Credentials
 import org.assetfabric.storage.server.controller.Constants.API_TOKEN
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.CookieValue

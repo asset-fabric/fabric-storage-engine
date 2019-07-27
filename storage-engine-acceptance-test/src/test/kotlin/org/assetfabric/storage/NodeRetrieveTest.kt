@@ -17,147 +17,157 @@
 
 package org.assetfabric.storage
 
-import io.restassured.RestAssured
-import io.restassured.module.webtestclient.RestAssuredWebTestClient
-import io.restassured.response.ResponseBodyExtractionOptions
-import org.apache.http.HttpStatus
-import org.apache.logging.log4j.LogManager
-import org.assetfabric.storage.rest.NodeRepresentation
-import org.assetfabric.storage.rest.SingleValueNodeProperty
-import org.assetfabric.storage.server.Application
-import org.assetfabric.storage.server.command.support.MetadataStoreResetCommand
-import org.assetfabric.storage.server.controller.Constants.API_TOKEN
-import org.assetfabric.storage.spi.metadata.CatalogPartitionAdapter
+import org.assetfabric.storage.server.service.support.DefaultMetadataManagerService
 import org.assetfabric.storage.spi.metadata.DataPartitionAdapter
+import org.assetfabric.storage.spi.metadata.WorkingAreaPartitionAdapter
+import org.assetfabric.storage.spi.support.DefaultNodeContentRepresentation
 import org.assetfabric.storage.spi.support.DefaultRevisionedNodeRepresentation
-import org.junit.jupiter.api.Assertions
+import org.assetfabric.storage.spi.support.DefaultWorkingAreaNodeRepresentation
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.context.ApplicationContext
-import org.springframework.test.annotation.DirtiesContext
+import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.annotation.Configuration
 import org.springframework.test.context.junit.jupiter.SpringExtension
-import org.springframework.test.web.reactive.server.WebTestClient
 import reactor.core.publisher.Flux
 
 @ExtendWith(SpringExtension::class)
-@DirtiesContext
-@SpringBootTest(classes = [Application::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@DisplayName("the node controller")
-class NodeRetrieveTest {
+@SpringBootTest
+@DisplayName("the fabric storage system")
+class NodeRetrieveTest: AbstractNodeTest() {
 
-    private val log = LogManager.getLogger(NodeRetrieveTest::class.java)
-
-    private val sessionUrl = "/v1/session"
-
-    private val nodeUrl = "/v1/node"
-
-    @Value("\${test.user}")
-    private lateinit var user: String
-
-    @Value("\${test.password}")
-    private lateinit var password: String
+    @Configuration
+    @ComponentScan("org.assetfabric.storage")
+    internal class Config
 
     @Autowired
-    private lateinit var webTestClient: WebTestClient
-
-    @Autowired
-    private lateinit var catalogAdapter: CatalogPartitionAdapter
+    private lateinit var workingAreaAdapter: WorkingAreaPartitionAdapter
 
     @Autowired
     private lateinit var dataPartitionAdapter: DataPartitionAdapter
 
     @Autowired
-    private lateinit var context: ApplicationContext
-
-    private val loginUtility = LoginUtility()
-
-    @Value("\${local.server.port}")
-    private lateinit var port: Integer
-
-    private inline fun <reified T> ResponseBodyExtractionOptions.to(): T {
-        return this.`as`(T::class.java)
-    }
-
-    private fun getLoginToken(): String {
-        val token = loginUtility.getTokenForUser(sessionUrl, user, password)
-        Assertions.assertNotNull(token, "null session token")
-        log.info("Sending node create request with token $token")
-        return token
-    }
+    private lateinit var manager: DefaultMetadataManagerService
 
     @BeforeEach
     private fun init() {
-        RestAssuredWebTestClient.webTestClient(webTestClient)
-
-        RestAssured.port = port.toInt()
-
-        val resetCommand = context.getBean(MetadataStoreResetCommand::class.java)
-        log.debug("Resetting repository")
-        resetCommand.execute().block()
-        log.debug("Repository reset complete")
+        manager.reset()
     }
 
     @Test
-    @DisplayName("should be able to retrieve an existing committed node with all of its properties")
-    fun retrieveNode() {
-        val properties = mutableMapOf<String, Any>("intProp" to 1, "stringProp" to "string")
-        val node = DefaultRevisionedNodeRepresentation(Path("/node1"), RevisionNumber(1), NodeType.UNSTRUCTURED, properties, State.NORMAL)
+    @DisplayName("should be able to retrieve an existing node from the working area")
+    fun retrieveWorkingAreaNodeInNormalState() {
+        val session = getSession().block()!!
 
-        dataPartitionAdapter.writeNodeRepresentations(Flux.just(node)).block()
-        catalogAdapter.setRepositoryRevision(RevisionNumber(1)).block()
+        val content = DefaultNodeContentRepresentation()
+        val wrepr = DefaultWorkingAreaNodeRepresentation(session.getSessionID(), Path("/some/node"), RevisionNumber(0), NodeType.UNSTRUCTURED, null, content)
 
-        val token = getLoginToken()
-        val response = RestAssured.given()
-                .header("Cookie", "$API_TOKEN=$token")
-                .queryParam("path", "/node1")
-                .get(nodeUrl).andReturn()
-        assertEquals(HttpStatus.SC_OK, response.statusCode, "HTTP status mismatch")
-        val retNode = response.body.to<NodeRepresentation>()
-        assertEquals("node1", retNode.getName())
-        assertEquals("/node1", retNode.getPath())
-        val retProps = retNode.getProperties()
-        assertEquals("1", (retProps["intProp"] as SingleValueNodeProperty).getValue())
-        assertEquals("string", (retProps["stringProp"] as SingleValueNodeProperty).getValue())
+        workingAreaAdapter.createNodeRepresentation(wrepr).block()
+
+        val retNode = session.node("/some/node").blockOptional()
+        assertTrue(retNode.isPresent, "node not found")
     }
 
     @Test
-    @DisplayName("should return a 404 when retrieving a node that doesn't exist")
-    fun retrieveMissingNode() {
-        val token = getLoginToken()
-        val response = RestAssured.given()
-                .header("Cookie", "$API_TOKEN=$token")
-                .queryParam("path", "/notanode")
-                .get(nodeUrl).andReturn()
-        assertEquals(HttpStatus.SC_NOT_FOUND, response.statusCode, "HTTP status mismatch")
+    @DisplayName("should not be able to retrieve a deleted node from the working area")
+    fun retrieveWorkingAreaNodeInDeletedState() {
+        val session = getSession().block()!!
+
+        val content = DefaultNodeContentRepresentation(NodeType.UNSTRUCTURED, mutableMapOf(), State.DELETED)
+        val wrepr = DefaultWorkingAreaNodeRepresentation(session.getSessionID(), Path("/some/node"), RevisionNumber(0), NodeType.UNSTRUCTURED, null, content)
+
+        workingAreaAdapter.createNodeRepresentation(wrepr).block()
+
+        val retNode = session.node("/some/node").blockOptional()
+        assertFalse(retNode.isPresent, "node found")
     }
 
     @Test
-    @DisplayName("should be able to return the children of a parent node")
-    fun retrieveChildNodes() {
-        val parent = DefaultRevisionedNodeRepresentation(Path("/node1"), RevisionNumber(1), NodeType.UNSTRUCTURED, hashMapOf(), State.NORMAL)
-        val child1 = DefaultRevisionedNodeRepresentation(Path("/node1/node2"), RevisionNumber(1), NodeType.UNSTRUCTURED, hashMapOf(), State.NORMAL)
-        val child2 = DefaultRevisionedNodeRepresentation(Path("/node1/node3"), RevisionNumber(1), NodeType.UNSTRUCTURED, hashMapOf(), State.NORMAL)
+    @DisplayName("should be able to retrieve the children of a node from the working area and the committed store")
+    fun retrieveCommittedAndWorkingChildren() {
+        val session = getSession().block()!!
 
-        dataPartitionAdapter.writeNodeRepresentations(Flux.just(parent, child1, child2)).block()
-        catalogAdapter.setRepositoryRevision(RevisionNumber(1)).block()
+        dataPartitionAdapter.writeNodeRepresentations(Flux.just(DefaultRevisionedNodeRepresentation(Path("/child1"), RevisionNumber(0), NodeType.UNSTRUCTURED, mutableMapOf(), State.NORMAL))).block()
 
-        val token = getLoginToken()
-        val retResult = webTestClient
-                .get()
-                .uri("$nodeUrl/children?path=/node1")
-                .header("Cookie", "$API_TOKEN=$token")
-                .exchange()
-                .expectStatus().isOk
-                .expectBodyList(NodeRepresentation::class.java)
-                .returnResult()
-        val nodeList: List<NodeRepresentation> = retResult.responseBody!!
-        assertEquals(2, nodeList.size)
+        val content = DefaultNodeContentRepresentation(NodeType.UNSTRUCTURED, mutableMapOf(), State.NORMAL)
+        val wrepr = DefaultWorkingAreaNodeRepresentation(session.getSessionID(), Path("/child2"), RevisionNumber(0), NodeType.UNSTRUCTURED, null, content)
+        workingAreaAdapter.createNodeRepresentation(wrepr).block()
+
+        val rootNode = session.rootNode().block()!!
+        val rootChildren = rootNode.children().collectList().block()!!
+        assertEquals(2, rootChildren.size, "root node child count mismatch")
     }
+
+    @Test
+    @DisplayName("should not be able to retrieve the children of a node that are deleted in the committed store")
+    fun retrieveDeletedCommittedAndNormalWorkingChildren() {
+        val session = getSession().block()!!
+
+        dataPartitionAdapter.writeNodeRepresentations(Flux.just(DefaultRevisionedNodeRepresentation(Path("/child1"), RevisionNumber(0), NodeType.UNSTRUCTURED, mutableMapOf(), State.DELETED))).block()
+
+        val rootNode = session.rootNode().block()!!
+        val rootChildren = rootNode.children().collectList().block()!!
+        assertEquals(0, rootChildren.size, "root node child count mismatch")
+    }
+
+    @Test
+    @DisplayName("should not be able to retrieve the committed children of a node that are deleted in the working area")
+    fun retrieveCommittedAndDeletedWorkingChildren() {
+        val session = getSession().block()!!
+
+        dataPartitionAdapter.writeNodeRepresentations(Flux.just(DefaultRevisionedNodeRepresentation(Path("/child1"), RevisionNumber(0), NodeType.UNSTRUCTURED, mutableMapOf(), State.NORMAL))).block()
+
+        val content = DefaultNodeContentRepresentation(NodeType.UNSTRUCTURED, mutableMapOf(), State.DELETED)
+        val wrepr = DefaultWorkingAreaNodeRepresentation(session.getSessionID(), Path("/child1"), RevisionNumber(0), NodeType.UNSTRUCTURED, null, content)
+        workingAreaAdapter.createNodeRepresentation(wrepr).block()
+
+        val rootNode = session.rootNode().block()!!
+        val rootChildren = rootNode.children().collectList().block()!!
+        assertEquals(0, rootChildren.size, "root node child count mismatch")
+    }
+
+    @Test
+    @DisplayName("should be able to retrieve children of a node that are deleted in committed storage but have been created in the working area")
+    fun retrieveCommittedChildrenThatAreNormalInTheWorkingArea() {
+        val session = getSession().block()!!
+
+        dataPartitionAdapter.writeNodeRepresentations(Flux.just(DefaultRevisionedNodeRepresentation(Path("/child1"), RevisionNumber(0), NodeType.UNSTRUCTURED, mutableMapOf(), State.DELETED))).block()
+
+        val content = DefaultNodeContentRepresentation(NodeType.UNSTRUCTURED, mutableMapOf(), State.NORMAL)
+        val wrepr = DefaultWorkingAreaNodeRepresentation(session.getSessionID(), Path("/child1"), RevisionNumber(0), NodeType.UNSTRUCTURED, null, content)
+        workingAreaAdapter.createNodeRepresentation(wrepr).block()
+
+        val rootNode = session.rootNode().block()!!
+        val rootChildren = rootNode.children().collectList().block()!!
+        assertEquals(1, rootChildren.size, "root node child count mismatch")
+    }
+
+    @Test
+    @DisplayName("should be able to retrieve an existing committed node")
+    fun retrieveCommittedNode() {
+        val session = getSession().block()!!
+
+        dataPartitionAdapter.writeNodeRepresentations(Flux.just(DefaultRevisionedNodeRepresentation(Path("/child1"), RevisionNumber(0), NodeType.UNSTRUCTURED, mutableMapOf(), State.NORMAL))).block()
+        val node = session.node("/child1").blockOptional()
+        assertTrue(node.isPresent, "node not found")
+    }
+
+    @Test
+    @DisplayName("should not be able to retrieve a committed, deleted node")
+    fun retrieveDeletedCommittedNode() {
+        val session = getSession().block()!!
+
+        dataPartitionAdapter.writeNodeRepresentations(Flux.just(DefaultRevisionedNodeRepresentation(Path("/child1"), RevisionNumber(0), NodeType.UNSTRUCTURED, mutableMapOf(), State.DELETED))).block()
+        val node = session.node("/child1").blockOptional()
+        assertFalse(node.isPresent, "node found")
+    }
+
+
 
 }

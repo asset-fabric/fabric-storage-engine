@@ -40,6 +40,7 @@ class DefaultWorkingAreaNodeRepresentation(
 
     override fun nodeType(): NodeType = nodeType
 
+    // TODO: why would a working area node have a revision?
     override fun revision(): RevisionNumber = revision
 
     override fun permanentRepresentation(): NodeContentRepresentation? = permanentRepresentation

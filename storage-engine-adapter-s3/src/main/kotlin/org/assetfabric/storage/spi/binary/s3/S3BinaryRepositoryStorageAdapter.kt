@@ -85,6 +85,14 @@ class S3BinaryRepositoryStorageAdapter: BinaryRepositoryStorageAdapter {
         return s3.listObjects(request).objectSummaries.map { FileInfo(it.key.substring(permanentLocationPrefix.length + 1), it.size) }
     }
 
+    override fun permanentLocationExists(location: String): Boolean {
+        val normalizedLocation = when(location.startsWith("/")) {
+            true -> location
+            false -> "/$location"
+        }
+        return s3.doesObjectExist(bucketName, "$permanentLocationPrefix$normalizedLocation")
+    }
+
     override fun inputStreamForPermanentLocation(location: String): InputStream {
         val normalizedLocation = when(location.startsWith("/")) {
             true -> location

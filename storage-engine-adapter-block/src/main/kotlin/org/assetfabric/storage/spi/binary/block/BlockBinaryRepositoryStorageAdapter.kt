@@ -95,6 +95,10 @@ class BlockBinaryRepositoryStorageAdapter: BinaryRepositoryStorageAdapter {
         return FileInfo(tempLocation, outFile.length())
     }
 
+    override fun permanentLocationExists(location: String): Boolean {
+        return File(tempFolder, location).exists()
+    }
+
     override fun inputStreamForTemporaryLocation(location: String): InputStream {
         return FileInputStream(File(tempFolder, location))
     }

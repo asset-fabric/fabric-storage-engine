@@ -52,6 +52,11 @@ interface BinaryRepositoryStorageAdapter {
     fun permanentFilesWithHashPrefix(hashPrefix: String): List<FileInfo>
 
     /**
+     * Returns true if the specified permanent binary exists, false otherwise
+     */
+    fun permanentLocationExists(location: String): Boolean
+
+    /**
      * Opens an input stream for the permanent file at the given location
      * @param location the location of the permanent file for which an input stream should be returned
      */

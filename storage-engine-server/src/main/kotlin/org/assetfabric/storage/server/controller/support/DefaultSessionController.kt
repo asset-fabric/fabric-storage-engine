@@ -18,11 +18,10 @@
 package org.assetfabric.storage.server.controller.support
 
 import org.apache.logging.log4j.LogManager
+import org.assetfabric.storage.Credentials
 import org.assetfabric.storage.Session
-import org.assetfabric.storage.rest.Credentials
 import org.assetfabric.storage.server.controller.Constants.API_TOKEN
 import org.assetfabric.storage.server.controller.SessionController
-import org.assetfabric.storage.server.service.MetadataManagerService
 import org.assetfabric.storage.server.service.SessionService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -41,14 +40,10 @@ class DefaultSessionController: SessionController {
     private lateinit var sessionService: SessionService
 
     @Autowired
-    private lateinit var metadataManagerService: MetadataManagerService
-
-    @Autowired
     private lateinit var sessionExecutor: SessionExecutor
 
     override fun getSession(@RequestBody credentials: Credentials): Mono<ResponseEntity<Void>> {
-        val revisionMono = metadataManagerService.repositoryRevision()
-        val sessionMono = revisionMono.flatMap { sessionService.getSession(credentials, it) }
+        val sessionMono = sessionService.getSession(credentials)
         return sessionMono.map { session ->
             log.debug("Created session ${session.getSessionID()}")
             ResponseEntity.ok().header("Set-Cookie", "$API_TOKEN=${session.getSessionID()}").build<Void>()

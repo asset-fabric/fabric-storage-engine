@@ -17,46 +17,125 @@
 
 package org.assetfabric.storage
 
-import io.restassured.RestAssured
-import org.assetfabric.storage.rest.NodeContentRepresentation
-import org.assetfabric.storage.rest.NodePropertyType
-import org.assetfabric.storage.server.Application
-import org.assetfabric.storage.server.controller.Constants
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.annotation.Configuration
 import org.springframework.test.context.junit.jupiter.SpringExtension
+import reactor.core.publisher.Flux
 
 @ExtendWith(SpringExtension::class)
-@SpringBootTest(classes = [Application::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@DisplayName("the node controller")
-class NodeDeleteTest: AbstractTest() {
+@SpringBootTest
+@DisplayName("the fabric storage system")
+class NodeDeleteTest: AbstractNodeTest() {
+
+    @Configuration
+    @ComponentScan("org.assetfabric.storage")
+    internal class Config
 
     @Test
-    @DisplayName("should be able to delete a deletable node")
-    fun testDeleteNode() {
-        val nodeName = "node1"
-        val nodePath = "/$nodeName"
-        val token = getLoginToken()
-        val contentRepresentation = NodeContentRepresentation()
-        contentRepresentation.setNodeType(NodeType.UNSTRUCTURED.toString())
-        contentRepresentation.setProperty("booleanProp", NodePropertyType.BOOLEAN, "true")
-        val (_, createResponse) = createNode(token, nodePath, contentRepresentation, hashMapOf())
-        assertEquals(200, createResponse.statusCode, "Wrong HTTP status code")
+    @DisplayName("should not be able to delete the root node")
+    fun deleteRootNode() {
+        val session = getSession().block()!!
+        val rootNode = session.rootNode().block()!!
+        assertThrows(NodeDeletionException::class.java) {
+            rootNode.delete()
+        }
+    }
 
-        val deleteRes = RestAssured.given()
-                .header("Cookie", "${Constants.API_TOKEN}=$token")
-                .queryParam("path", "/node1")
-                .delete("/v1/node").andReturn()
-        assertEquals(200, deleteRes.statusCode, "Wrong HTTP status code")
+    @Test
+    @DisplayName("should be able to delete a working area node that has no children and no incoming references")
+    fun deleteNode() {
+        val session = getSession().block()!!
+        session.rootNode().flatMap { node ->
+            node.createChild("child1", NodeType.UNSTRUCTURED, mutableMapOf())
+        }.block()!!
 
-        val response = RestAssured.given()
-                .header("Cookie", "${Constants.API_TOKEN}=$token")
-                .queryParam("path", "/node1")
-                .get("/v1/node").andReturn()
-        assertEquals(404, response.statusCode, "Wrong HTTP status code")
+        val node = session.node("/child1").block()!!
+        node.delete().block()
+
+        val retNode = session.node("/child1").blockOptional()
+        assertFalse(retNode.isPresent, "found deleted node")
+    }
+
+    @Test
+    @DisplayName("should be able to delete a node whose children are deletable")
+    fun deleteNodeWithDeletableChildren() {
+        val session = getSession().block()!!
+        session.rootNode().flatMapMany { node ->
+            Flux.concat(
+                node.createChild("child1", NodeType.UNSTRUCTURED, mutableMapOf()),
+                node.createChild("child1/child2", NodeType.UNSTRUCTURED, mutableMapOf())
+            )
+        }.then().block()
+
+        val node = session.node("/child1").block()!!
+        val childNode = session.node("/child1/child2").block()!!
+        assertNotNull(node)
+        assertNotNull(childNode)
+
+        node.delete().block()
+
+        val retNode = session.node("/child1").blockOptional()
+        assertFalse(retNode.isPresent, "found deleted node")
+    }
+
+    @Test
+    @DisplayName("should delete a node's children when the node is deleted")
+    fun deleteChildrenWithNode() {
+        val session = getSession().block()!!
+        session.rootNode().flatMapMany { node ->
+            Flux.concat(
+                    node.createChild("child1", NodeType.UNSTRUCTURED, mutableMapOf()),
+                    node.createChild("child1/child2", NodeType.UNSTRUCTURED, mutableMapOf())
+            )
+        }.then().block()
+
+        val node = session.node("/child1").block()!!
+        val childNode = session.node("/child1/child2").block()!!
+        assertNotNull(node)
+        assertNotNull(childNode)
+
+        node.delete().block()
+
+        val retNode2 = session.node("/child1/child2").blockOptional()
+        assertFalse(retNode2.isPresent, "found deleted child")
+    }
+
+    @Test
+    @DisplayName("should not be able to delete a node that has incoming references")
+    fun deleteReferencedNode() {
+        val session = getSession().block()!!
+
+        val root = session.rootNode().block()!!
+        val node1 = root.createChild("node1", NodeType.UNSTRUCTURED, mutableMapOf()).block()!!
+        root.createChild("node2", NodeType.UNSTRUCTURED, mutableMapOf("nodeRef" to NodeReference("/node1"))).block()!!
+
+        assertThrows(NodeDeletionException::class.java) {
+            node1.delete().block()
+        }
+    }
+
+    @Test
+    @DisplayName("should not be able to delete a node that has non-deletable children")
+    fun deleteNodeWithNonDeleteableChildren() {
+        val session = getSession().block()!!
+
+        val root = session.rootNode().block()!!
+        val node1 = root.createChild("node1", NodeType.UNSTRUCTURED, mutableMapOf()).block()!!
+
+        node1.createChild("child1", NodeType.UNSTRUCTURED, mutableMapOf()).block()
+        // /node1/child1 is not deletable becuase /node1/child2 has a reference to it
+        node1.createChild("child2", NodeType.UNSTRUCTURED, mutableMapOf("nodeRef" to NodeReference("/node1/child1"))).block()!!
+
+        assertThrows(NodeDeletionException::class.java) {
+            node1.delete().block()
+        }
     }
 
 }

@@ -50,7 +50,10 @@ class Path(val path: String): Comparable<Path> {
     }
 
     fun childPath(childName: String): Path {
-        return Path("$path$pathSeparator$childName")
+        return when(isRoot()) {
+            true -> Path("$pathSeparator$childName")
+            else -> Path("$path$pathSeparator$childName")
+        }
     }
 
     override fun toString(): String = path

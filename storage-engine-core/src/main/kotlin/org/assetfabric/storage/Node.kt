@@ -22,20 +22,72 @@ import reactor.core.publisher.Mono
 
 interface Node {
 
+    /**
+     * Returns the name of this node.
+     */
     fun name(): String
 
+    /**
+     * Returns the path of this node.
+     */
     fun path(): Path
 
+    /**
+     * Returns the revision number of this node, if it has one.
+     */
     fun revision(): RevisionNumber?
 
+    /**
+     * Returns the type of this node.
+     */
     fun nodeType(): NodeType
 
+    /**
+     * Returns the state of this node.
+     */
     fun state(): State
 
+    /**
+     * Returns all properties of this node.
+     */
     fun properties(): Map<String, Any>
 
+    /**
+     * Creates a new node as a child of this node.
+     * @param name the name of the new child node
+     * @param nodeType the type of the new child node
+     * @param properties the properties of the new child node
+     */
     fun createChild(name: String, nodeType: NodeType, properties: MutableMap<String, Any>): Mono<Node>
 
+    /**
+     * Returns the child of this node with the given name, if available.
+     */
+    fun child(name: String): Mono<Node>
+
+    /**
+     * Returns all the children of this node.
+     */
     fun children(): Flux<Node>
+
+    /**
+     * Updates the properties of this node.
+     */
+    fun setProperties(properties: MutableMap<String, Any>): Mono<Void>
+
+    /**
+     * Returns the given property as a string.
+     */
+    fun stringProperty(name: String): String?
+
+    /**
+     * Returns the nodes that have [NodeReference]s pointing at this node.
+     */
+    fun referringNodes(): Flux<Node>
+
+    /**
+     * Deletes this node.
+     */
+    fun delete(): Mono<Void>
 
 }

@@ -31,10 +31,6 @@ class DefaultNodeRepresentation(val path: Path, val repr: NodeContentRepresentat
 
     override fun path(): Path = path
 
-    override fun contentRepresentation(): NodeContentRepresentation {
-        return repr
-    }
-
     override fun toString(): String {
         return "NodeRepresentation(name='${name()}', path='$path', properties=${properties()}"
     }

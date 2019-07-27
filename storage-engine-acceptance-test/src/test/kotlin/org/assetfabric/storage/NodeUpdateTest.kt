@@ -17,69 +17,121 @@
 
 package org.assetfabric.storage
 
-import org.assetfabric.storage.rest.NodeContentRepresentation
-import org.assetfabric.storage.rest.NodePropertyType
-import org.assetfabric.storage.rest.SingleValueNodeProperty
-import org.assetfabric.storage.server.Application
+import org.assetfabric.storage.server.service.support.DefaultMetadataManagerService
+import org.assetfabric.storage.spi.metadata.DataPartitionAdapter
+import org.assetfabric.storage.spi.metadata.WorkingAreaPartitionAdapter
+import org.assetfabric.storage.spi.support.DefaultNodeContentRepresentation
+import org.assetfabric.storage.spi.support.DefaultRevisionedNodeRepresentation
+import org.assetfabric.storage.spi.support.DefaultWorkingAreaNodeRepresentation
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.annotation.Configuration
 import org.springframework.test.context.junit.jupiter.SpringExtension
+import reactor.core.publisher.Flux
 
 @ExtendWith(SpringExtension::class)
-@SpringBootTest(classes = [Application::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@DisplayName("the node controller")
-class NodeUpdateTest: AbstractTest() {
+@SpringBootTest
+@DisplayName("the fabric storage system")
+class NodeUpdateTest: AbstractNodeTest() {
 
-    @Test
-    @DisplayName("should be able to update an existing node")
-    fun testUpdateNode() {
-        val nodeName = "node1"
-        val nodePath = "/$nodeName"
-        val token = getLoginToken()
-        val contentRepresentation = NodeContentRepresentation()
-        contentRepresentation.setNodeType(NodeType.UNSTRUCTURED.toString())
-        contentRepresentation.setProperty("booleanProp", NodePropertyType.BOOLEAN, "true")
-        val (_, createResponse) = createNode(token, nodePath, contentRepresentation, hashMapOf())
-        assertEquals(200, createResponse.statusCode, "Wrong HTTP status code")
+    @Configuration
+    @ComponentScan("org.assetfabric.storage")
+    internal class Config
 
-        contentRepresentation.removeProperty("booleanProp")
-        contentRepresentation.setProperty("stringProp", NodePropertyType.STRING,"hi")
-        val (updated, updateResponse) = updateNode(token, nodePath, contentRepresentation, hashMapOf())
-        assertEquals(200, updateResponse.statusCode, "Wrong HTTP status code")
-        assertEquals(SingleValueNodeProperty(NodePropertyType.STRING, "hi"), updated.getProperties()["stringProp"], "String property mismatch")
-        assertNull(updated.getProperties()["booleanProp"], "Found boolean property")
+    @Autowired
+    private lateinit var dataPartitionAdapter: DataPartitionAdapter
+
+    @Autowired
+    private lateinit var workingAreaPartitionAdapter: WorkingAreaPartitionAdapter
+
+    @Autowired
+    private lateinit var metadataManager: DefaultMetadataManagerService
+
+    @BeforeEach
+    fun init() {
+        metadataManager.reset()
     }
 
     @Test
-    @DisplayName("should return a 404 when updating a nonexistent node")
-    fun testUpdateMissingNode() {
-        val nodePath = "/nodex"
-        val token = getLoginToken()
-        val contentRepresentation = NodeContentRepresentation()
-        contentRepresentation.setNodeType(NodeType.UNSTRUCTURED.toString())
-        val (_, createResponse) = updateNode(token, nodePath, contentRepresentation, hashMapOf())
-        assertEquals(404, createResponse.statusCode, "Wrong HTTP status code")
+    @DisplayName("should be able to update all properties of an existing committed node")
+    fun updateNode() {
+        val session = getSession().block()!!
+
+        dataPartitionAdapter.writeNodeRepresentations(Flux.just(DefaultRevisionedNodeRepresentation(Path("/child1"), RevisionNumber(0), NodeType.UNSTRUCTURED, mutableMapOf(), State.NORMAL))).block()
+
+        val node = session.node("/child1").block()!!
+        val newProps = mutableMapOf<String, Any>(
+                "stringProp" to "string"
+        )
+        node.setProperties(newProps).block()
+
+        val updatedNode = session.node("/child1").block()!!
+        assertEquals("string", updatedNode.stringProperty("stringProp"))
     }
 
     @Test
-    @DisplayName("should return a 409 when updating a existing node with a different node type")
-    fun testChangeNodeType() {
-        val nodeName = "node1"
-        val nodePath = "/$nodeName"
-        val token = getLoginToken()
-        val contentRepresentation = NodeContentRepresentation()
-        contentRepresentation.setNodeType(NodeType.UNSTRUCTURED.toString())
-        contentRepresentation.setProperty("booleanProp", NodePropertyType.BOOLEAN, "true")
-        val (_, createResponse) = createNode(token, nodePath, contentRepresentation, hashMapOf())
-        assertEquals(200, createResponse.statusCode, "Wrong HTTP status code")
+    @DisplayName("should be able to update a node that exists in the working area")
+    fun updateWorkingAreaNode() {
+        val session = getSession().block()!!
 
-        contentRepresentation.setNodeType("af:othertype:1")
-        val (_, updateResponse) = updateNode(token, nodePath, contentRepresentation, hashMapOf())
-        assertEquals(409, updateResponse.statusCode, "Wrong HTTP status code")
+        val workingProps = mutableMapOf<String, Any>(
+                "stringProp" to "oldString"
+        )
+        val contentRepr = DefaultNodeContentRepresentation(NodeType.UNSTRUCTURED, workingProps, State.NORMAL)
+        val workingRepr = DefaultWorkingAreaNodeRepresentation(session.getSessionID(), Path("/child1"), RevisionNumber(0), NodeType.UNSTRUCTURED, null, contentRepr)
+        workingAreaPartitionAdapter.createNodeRepresentation(workingRepr).block()
+
+
+        val node = session.node("/child1").block()!!
+        val newProps = mutableMapOf<String, Any>(
+                "stringProp" to "string"
+        )
+        node.setProperties(newProps).block()
+
+        val updatedNode = session.node("/child1").block()!!
+        assertEquals("string", updatedNode.stringProperty("stringProp"))
+    }
+
+    @Test
+    @DisplayName("should be not be able to update a node with an invalid node reference property")
+    fun updateNodeWithInvalidNodeReference() {
+        val session = getSession().block()!!
+
+        dataPartitionAdapter.writeNodeRepresentations(Flux.just(DefaultRevisionedNodeRepresentation(Path("/child1"), RevisionNumber(0), NodeType.UNSTRUCTURED, mutableMapOf(), State.NORMAL))).block()
+
+        val node = session.node("/child1").block()!!
+        val newProps = mutableMapOf(
+                "stringProp" to "string",
+                "nodeRef" to NodeReference("/not/a/path")
+        )
+        assertThrows(NodeModificationException::class.java) {
+            node.setProperties(newProps).block()
+        }
+
+    }
+
+    @Test
+    @DisplayName("should not be able to update a node with an invalid binary property")
+    fun updateNodeWithInvalidBinary() {
+        val session = getSession().block()!!
+
+        dataPartitionAdapter.writeNodeRepresentations(Flux.just(DefaultRevisionedNodeRepresentation(Path("/child1"), RevisionNumber(0), NodeType.UNSTRUCTURED, mutableMapOf(), State.NORMAL))).block()
+
+        val node = session.node("/child1").block()!!
+        val newProps = mutableMapOf(
+                "stringProp" to "string",
+                "binRef" to BinaryReference("not/a/binary")
+        )
+        assertThrows(NodeModificationException::class.java) {
+            node.setProperties(newProps).block()
+        }
     }
 
 

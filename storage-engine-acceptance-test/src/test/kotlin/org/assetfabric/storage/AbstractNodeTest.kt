@@ -15,19 +15,27 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.assetfabric.storage.spi.support
+package org.assetfabric.storage
 
-import org.assetfabric.storage.NodeType
-import org.assetfabric.storage.Path
-import org.assetfabric.storage.RevisionNumber
-import org.assetfabric.storage.State
-import org.assetfabric.storage.spi.NodeRepresentation
-import org.assetfabric.storage.spi.RevisionedNodeRepresentation
+import org.assetfabric.storage.server.service.SessionService
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.test.annotation.DirtiesContext
+import reactor.core.publisher.Mono
 
-class DefaultRevisionedNodeRepresentation(val revision: RevisionNumber, nodeRepr: NodeRepresentation): RevisionedNodeRepresentation, NodeRepresentation by nodeRepr {
+@DirtiesContext
+abstract class AbstractNodeTest {
 
-    constructor(path: Path, revision: RevisionNumber, nodeType: NodeType, properties: MutableMap<String, Any>, state: State): this(revision, DefaultNodeRepresentation(path, nodeType, state, properties))
+    @Value("\${test.user}")
+    protected lateinit var user: String
 
-    override fun revision(): RevisionNumber = revision
+    @Value("\${test.password}")
+    protected lateinit var password: String
+
+    @Autowired
+    protected lateinit var sessionService: SessionService
+
+    protected fun getSession(): Mono<Session> = sessionService.getSession(Credentials(user, password))
+
 
 }

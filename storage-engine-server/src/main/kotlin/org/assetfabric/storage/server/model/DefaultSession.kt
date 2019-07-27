@@ -18,6 +18,7 @@
 package org.assetfabric.storage.server.model
 
 import org.assetfabric.storage.Node
+import org.assetfabric.storage.Path
 import org.assetfabric.storage.RevisionNumber
 import org.assetfabric.storage.Session
 import org.assetfabric.storage.server.service.MetadataManagerService
@@ -26,12 +27,15 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.config.BeanDefinition
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Scope
+import org.springframework.data.history.Revision
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 
 @Component
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
-class DefaultSession(private val sessionID: String, private val userID: String, private val revision: RevisionNumber): Session {
+class DefaultSession(private val sessionID: String, private val userID: String, revision: RevisionNumber): Session {
+
+    private var currentRevision = revision
 
     @Autowired
     private lateinit var metadataManagerService: MetadataManagerService
@@ -46,14 +50,18 @@ class DefaultSession(private val sessionID: String, private val userID: String, 
 
     override fun getUserID(): String = userID
 
-    override fun revision(): RevisionNumber = revision
+    override fun revision(): RevisionNumber = currentRevision
+
+    fun setRevision(rev: RevisionNumber) {
+        currentRevision = rev
+    }
 
     override fun rootNode(): Mono<Node> {
         return node("/").switchIfEmpty(Mono.error(RuntimeException("Root node not found")))
     }
 
     override fun node(path: String): Mono<Node> {
-        val representationMono =  metadataManagerService.nodeRepresentation(this, path)
+        val representationMono =  metadataManagerService.nodeRepresentation(this, Path(path))
         return representationMono.map { context.getBean(DefaultNode::class.java, this, it)  }
     }
 

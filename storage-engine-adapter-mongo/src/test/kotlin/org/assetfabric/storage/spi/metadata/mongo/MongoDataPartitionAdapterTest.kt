@@ -78,7 +78,7 @@ class MongoDataPartitionAdapterTest {
 
         adapter.writeNodeRepresentations(nodes).block()
         val paths = Flux.range(0, count).map { index ->
-            "/test/node$index"
+            Path("/test/node$index")
         }
         paths.subscribe { path ->
             Assertions.assertTrue(adapter.nodeRepresentation(revision, path).blockOptional().isPresent, "Node $path not found")
@@ -95,7 +95,7 @@ class MongoDataPartitionAdapterTest {
         }
         adapter.writeNodeRepresentations(nodes).block()
         log.debug("Wrote child representations")
-        val retList = adapter.nodeChildRepresentations(revision, "/").collectList().block()
+        val retList = adapter.nodeChildRepresentations(revision, Path("/")).collectList().block()
         assertNotNull(retList, "Null children returned")
         assertEquals(count, retList!!.size)
     }
@@ -111,7 +111,7 @@ class MongoDataPartitionAdapterTest {
         }
         adapter.writeNodeRepresentations(nodes).block()
         log.debug("Wrote child representations")
-        val retList = adapter.nodeChildRepresentations(revision.plus(1), "/").collectList().block()
+        val retList = adapter.nodeChildRepresentations(revision.plus(1), Path("/")).collectList().block()
         assertNotNull(retList, "Null children returned")
         assertEquals(1, retList!!.size)
         assertEquals(RevisionNumber(3), retList.get(0).revision())

@@ -93,7 +93,7 @@ class DefaultBinaryManagerService: BinaryManagerService {
     }
 
     override fun fileExists(hashPath: String): Boolean {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        return storageAdapter.permanentLocationExists(hashPath)
     }
 
     override fun delete(hashPath: String): Boolean {

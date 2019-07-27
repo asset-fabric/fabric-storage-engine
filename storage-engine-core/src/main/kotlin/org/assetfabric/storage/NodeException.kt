@@ -15,19 +15,12 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.assetfabric.storage.spi.support
+package org.assetfabric.storage
 
-import org.assetfabric.storage.NodeType
-import org.assetfabric.storage.Path
-import org.assetfabric.storage.RevisionNumber
-import org.assetfabric.storage.State
-import org.assetfabric.storage.spi.NodeRepresentation
-import org.assetfabric.storage.spi.RevisionedNodeRepresentation
+class NodeException: RuntimeException {
 
-class DefaultRevisionedNodeRepresentation(val revision: RevisionNumber, nodeRepr: NodeRepresentation): RevisionedNodeRepresentation, NodeRepresentation by nodeRepr {
+    constructor(message: String): super(message)
 
-    constructor(path: Path, revision: RevisionNumber, nodeType: NodeType, properties: MutableMap<String, Any>, state: State): this(revision, DefaultNodeRepresentation(path, nodeType, state, properties))
-
-    override fun revision(): RevisionNumber = revision
+    constructor(throwable: Throwable): super(throwable)
 
 }

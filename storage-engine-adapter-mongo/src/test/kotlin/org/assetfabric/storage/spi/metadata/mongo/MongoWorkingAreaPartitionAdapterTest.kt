@@ -58,10 +58,10 @@ class MongoWorkingAreaPartitionAdapterTest {
     @DisplayName("should be able to store a working area node representation")
     fun testCreateNodeRepresentation() {
         val sessionId = "testSession"
-        val path = "/test"
+        val path = Path("/test")
 
         val core = DefaultNodeContentRepresentation(hashMapOf("int" to 4))
-        val repr = DefaultWorkingAreaNodeRepresentation(sessionId, Path(path), RevisionNumber(3), NodeType.UNSTRUCTURED, null, core)
+        val repr = DefaultWorkingAreaNodeRepresentation(sessionId, path, RevisionNumber(3), NodeType.UNSTRUCTURED, null, core)
 
         partitionAdapter.createNodeRepresentation(repr).subscribe {
             val opt = partitionAdapter.nodeRepresentation(sessionId, path).blockOptional()
@@ -78,10 +78,10 @@ class MongoWorkingAreaPartitionAdapterTest {
     @DisplayName("should be able to update a working area node representation")
     fun testUpdateNodeRepresentation() {
         val sessionId = "testSession"
-        val path = "/test"
+        val path = Path("/test")
 
         val core = DefaultNodeContentRepresentation(hashMapOf("int" to 4))
-        val repr = DefaultWorkingAreaNodeRepresentation(sessionId, Path(path), RevisionNumber(3), NodeType.UNSTRUCTURED, null, core)
+        val repr = DefaultWorkingAreaNodeRepresentation(sessionId, path, RevisionNumber(3), NodeType.UNSTRUCTURED, null, core)
 
         partitionAdapter.createNodeRepresentation(repr).block()
 
@@ -157,7 +157,7 @@ class MongoWorkingAreaPartitionAdapterTest {
 
         partitionAdapter.createNodeRepresentation(repr).block()
 
-        val childNodes = partitionAdapter.nodeChildRepresentations(sessionId, "/").collectList().block()
+        val childNodes = partitionAdapter.nodeChildRepresentations(sessionId, Path("/")).collectList().block()
         assertFalse(childNodes!!.isEmpty(), "Node children not returned")
     }
 

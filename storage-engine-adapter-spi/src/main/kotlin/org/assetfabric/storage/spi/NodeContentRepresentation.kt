@@ -34,4 +34,6 @@ interface NodeContentRepresentation {
 
     fun properties(): MutableMap<String, Any>
 
+    fun setProperties(props: MutableMap<String, Any>)
+
 }

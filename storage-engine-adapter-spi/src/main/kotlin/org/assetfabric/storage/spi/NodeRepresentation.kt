@@ -28,6 +28,4 @@ interface NodeRepresentation: NodeContentRepresentation {
 
     fun path(): Path
 
-    fun contentRepresentation(): NodeContentRepresentation
-
 }

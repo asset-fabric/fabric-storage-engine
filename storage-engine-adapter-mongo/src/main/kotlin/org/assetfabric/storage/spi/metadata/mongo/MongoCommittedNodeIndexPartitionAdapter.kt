@@ -34,6 +34,7 @@ import org.springframework.data.mongodb.core.query.Query
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import java.util.regex.Pattern
 
 @Component
 @ConditionalOnProperty("assetfabric.storage.metadata.adapter.type", havingValue = "mongo")
@@ -55,6 +56,18 @@ class MongoCommittedNodeIndexPartitionAdapter: CommittedNodeIndexPartitionAdapte
         val criteria = Criteria().andOperator(
                 Criteria.where("nodePath").`is`(nodePath.toString()),
                 Criteria.where("revision").lte(revision.toString()))
+        return referencesForCriteria(criteria)
+    }
+
+    override fun nodeReferencesAtOrBelow(nodePath: Path, revision: RevisionNumber): Flux<CommittedInverseNodeReferenceRepresentation> {
+        val criteria = Criteria()
+                .regex(Pattern.compile("^${nodePath.path}"))
+                .andOperator(Criteria.where("revision").lte(revision.toString()))
+
+        return referencesForCriteria(criteria)
+    }
+
+    private fun referencesForCriteria(criteria: Criteria): Flux<CommittedInverseNodeReferenceRepresentation> {
         val matchStage = Aggregation.match(criteria)
 
         // sort by path ascending and revision descending (most recent first)

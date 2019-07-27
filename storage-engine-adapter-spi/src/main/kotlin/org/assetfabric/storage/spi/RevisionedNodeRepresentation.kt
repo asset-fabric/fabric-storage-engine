@@ -26,6 +26,4 @@ interface RevisionedNodeRepresentation: NodeRepresentation {
 
     fun revision(): RevisionNumber
 
-    fun getNodeRepresentation(): NodeRepresentation
-
 }

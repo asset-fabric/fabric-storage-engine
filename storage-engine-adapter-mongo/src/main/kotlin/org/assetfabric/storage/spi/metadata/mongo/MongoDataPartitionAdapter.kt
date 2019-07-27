@@ -64,15 +64,15 @@ class MongoDataPartitionAdapter: DataPartitionAdapter {
 
     override fun writeJournalEntries(entries: Flux<JournalEntryNodeRepresentation>): Mono<Void> {
         val reprFlux = entries.map<RevisionedNodeRepresentation> { journalEntry ->
-            DefaultRevisionedNodeRepresentation(journalEntry.path(), journalEntry.revision(), journalEntry.nodeType(), journalEntry.content().properties(), State.NORMAL)
+            DefaultRevisionedNodeRepresentation(journalEntry.path(), journalEntry.revision(), journalEntry.nodeType(), journalEntry.content().properties(), journalEntry.content().state())
         }
         return writeNodeRepresentations(reprFlux)
     }
 
-    override fun nodeRepresentation(revision: RevisionNumber, path: String): Mono<RevisionedNodeRepresentation> {
+    override fun nodeRepresentation(revision: RevisionNumber, path: Path): Mono<RevisionedNodeRepresentation> {
         val query = Query()
         val criteria = Criteria().andOperator(
-                Criteria.where("path").`is`(path),
+                Criteria.where("path").`is`(path.path),
                 Criteria.where("revision").lte(revision.toString()))
         query.addCriteria(criteria)
                 .with(Sort(Sort.Direction.DESC, "revision"))
@@ -81,10 +81,10 @@ class MongoDataPartitionAdapter: DataPartitionAdapter {
        return provider.template.findOne(query, RevisionedNodeRepresentation::class.java, partitionCollectionName)
     }
 
-    override fun nodeChildRepresentations(revision: RevisionNumber, path: String): Flux<RevisionedNodeRepresentation> {
+    override fun nodeChildRepresentations(revision: RevisionNumber, path: Path): Flux<RevisionedNodeRepresentation> {
         // find the nodes with the given parent path
         val criteria = Criteria().andOperator(
-                Criteria.where("parentPath").`is`(path),
+                Criteria.where("parentPath").`is`(path.path),
                 Criteria.where("revision").lte(revision.toString()))
         val matchStage = Aggregation.match(criteria)
 

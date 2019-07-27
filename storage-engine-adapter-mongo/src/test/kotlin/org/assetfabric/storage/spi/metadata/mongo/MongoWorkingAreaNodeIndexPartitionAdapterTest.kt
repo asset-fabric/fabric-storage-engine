@@ -69,7 +69,7 @@ class MongoWorkingAreaNodeIndexPartitionAdapterTest {
     }
 
     @Test
-    @DisplayName("should be able to retrieve all working area node references for a given session")
+    @DisplayName("should be able to retrieve all working area node references for a given node in a session")
     fun testGetSessionWorkingNodes() {
         val sessionId = "testSession"
         val node1Path = Path("/test1")
@@ -83,7 +83,22 @@ class MongoWorkingAreaNodeIndexPartitionAdapterTest {
     }
 
     @Test
-    @DisplayName("should be able to remove all working area node references for a given session")
+    @DisplayName("should be able to retrieve all working area node references for a given node in a session and its children")
+    fun testGetNodeAndChildReferences() {
+        val sessionId = "testSession"
+        val node1Path = Path("/test1")
+        val repr = DefaultWorkingAreaInverseNodeReferenceRepresentation(sessionId, node1Path, Path("/test2/test2"), State.NORMAL)
+        val repr2 = DefaultWorkingAreaInverseNodeReferenceRepresentation(sessionId, node1Path, Path("/test2/test3"), State.NORMAL)
+        val repr3 = DefaultWorkingAreaInverseNodeReferenceRepresentation(sessionId, node1Path, Path("/test2/test2/test4"), State.DELETED)
+        val result = partitionAdapter.createInverseNodeReferences(Flux.just(repr, repr2, repr3))
+        result.collectList().block()
+
+        val reprs = partitionAdapter.nodeReferencesAtOrBelow(sessionId, Path("/")).collectList().block()!!
+        assertEquals(3, reprs.size)
+    }
+
+    @Test
+    @DisplayName("should be able to remove all working area node references for a given node in a session")
     fun testDeleteSessionWorkingNodes() {
         val sessionId = "testSession"
         val node1Path = Path("/test1")
@@ -99,5 +114,7 @@ class MongoWorkingAreaNodeIndexPartitionAdapterTest {
         reprs = partitionAdapter.nodeReferences(sessionId, node1Path).collectList().block()!!
         assertEquals(0, reprs.size)
     }
+
+
 
 }

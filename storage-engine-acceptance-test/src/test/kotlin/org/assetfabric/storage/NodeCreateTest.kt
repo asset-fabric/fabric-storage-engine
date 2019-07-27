@@ -17,156 +17,150 @@
 
 package org.assetfabric.storage
 
-import io.restassured.RestAssured
-import io.restassured.response.Response
-import io.restassured.response.ResponseBodyExtractionOptions
-import org.apache.logging.log4j.LogManager
-import org.assetfabric.storage.rest.NodeContentRepresentation
-import org.assetfabric.storage.rest.NodePropertyType
-import org.assetfabric.storage.rest.NodeRepresentation
-import org.assetfabric.storage.rest.SingleValueNodeProperty
-import org.assetfabric.storage.server.Application
-import org.assetfabric.storage.server.controller.Constants.API_TOKEN
-import org.assetfabric.storage.spi.metadata.WorkingAreaPartitionAdapter
+import org.assetfabric.storage.server.service.support.DefaultMetadataManagerService
+import org.assetfabric.storage.spi.metadata.DataPartitionAdapter
+import org.assetfabric.storage.spi.support.DefaultRevisionedNodeRepresentation
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.annotation.Configuration
 import org.springframework.test.context.junit.jupiter.SpringExtension
+import reactor.core.publisher.Flux
 import java.io.ByteArrayInputStream
-import java.io.InputStream
+import java.util.Date
 
 @ExtendWith(SpringExtension::class)
-@SpringBootTest(classes = [Application::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@DisplayName("the node controller")
-class NodeCreateTest: AbstractTest() {
+@SpringBootTest
+@DisplayName("the fabric storage system")
+class NodeCreateTest: AbstractNodeTest() {
 
-    private val log = LogManager.getLogger(NodeCreateTest::class.java)
-
-    @Value("\${local.server.port}")
-    private lateinit var port: Integer
+    @Configuration
+    @ComponentScan("org.assetfabric.storage")
+    internal class Config
 
     @Autowired
-    private lateinit var workingAreaPartitionAdapter: WorkingAreaPartitionAdapter
+    private lateinit var metadataManager: DefaultMetadataManagerService
+
+    @Autowired
+    private lateinit var dataPartitionAdapter: DataPartitionAdapter
 
     @BeforeEach
     private fun init() {
-        RestAssured.port = port.toInt()
-        workingAreaPartitionAdapter.reset().block()
+        metadataManager.reset()
     }
 
+    @Test
+    @DisplayName("should be able to create a node that doesn't exist in committed storage or in the session's working area")
+    fun createNode() {
+        val session = getSession().block()!!
+        val propertyMap = mutableMapOf(
+                "stringProp" to "string",
+                "stringListProp" to TypedList(ListType.STRING, listOf("a", "b")),
+                "intProp" to 3,
+                "intListProp" to TypedList(ListType.INTEGER, listOf(1, 2, 3)),
+                "booleanProp" to true,
+                "booleanListProp" to TypedList(ListType.BOOLEAN, listOf(true, false)),
+                "longProp" to 4L,
+                "longListProp" to TypedList(ListType.LONG, listOf(2, 3, 4)),
+                "dateProp" to Date(),
+                "dateListProp" to TypedList(ListType.DATE, listOf(Date(), Date())),
+                "nodeRefProp" to NodeReference("/"),
+                "nodeRefListProp" to TypedList(ListType.NODE, listOf(NodeReference("/"))),
+                "binProp" to InputStreamWithLength(ByteArrayInputStream(byteArrayOf(1, 2, 3)), 3)
+         )
+        val newNode = session.rootNode().flatMap { node ->
+            node.createChild("child1", NodeType.UNSTRUCTURED, propertyMap)
+        }.block()!!
+        assertEquals("child1", newNode.name())
+        assertEquals(Path("/child1"), newNode.path())
+        assertEquals(NodeType.UNSTRUCTURED, newNode.nodeType())
+    }
 
     @Test
-    @DisplayName("should be able to create a new node with all non-binary properties")
-    fun createNewNode() {
-        val nodeName = "node1"
-        val nodePath = "/$nodeName"
+    @DisplayName("should be able to create a node that doesn't exist in committed storage but which does exist in a different session's working area")
+    fun createNodeThatExistsInAnotherSession() {
+        val session = getSession().block()!!
+        session.rootNode().flatMap { node ->
+            node.createChild("child1", NodeType.UNSTRUCTURED, mutableMapOf())
+        }.block()!!
 
-        val token = getLoginToken()
+        val session2 = getSession().block()!!
+        session2.rootNode().flatMap { node ->
+            node.createChild("child1", NodeType.UNSTRUCTURED, mutableMapOf())
+        }.block()!!
+    }
 
-        val contentRepresentation = NodeContentRepresentation()
-        contentRepresentation.setNodeType(NodeType.UNSTRUCTURED.toString())
-        contentRepresentation.setProperty("booleanProp", NodePropertyType.BOOLEAN, "true")
-        contentRepresentation.setProperty("intProp", NodePropertyType.INTEGER, "3")
-        contentRepresentation.setProperty("stringProp", NodePropertyType.STRING, "hello world")
-        contentRepresentation.setProperty("dateProp", NodePropertyType.DATE, "2012-01-03T00:00:00Z")
-        contentRepresentation.setProperty("longProp", NodePropertyType.LONG, "45")
-        contentRepresentation.setProperty("booleanListProp", NodePropertyType.BOOLEAN, listOf("true", "false"))
-        contentRepresentation.setProperty("intListProp", NodePropertyType.INTEGER, listOf("1", "2"))
-        contentRepresentation.setProperty("stringListProp", NodePropertyType.STRING, listOf("A", "B"))
-        contentRepresentation.setProperty("longListProp", NodePropertyType.LONG, listOf("1", "2"))
-        contentRepresentation.setProperty("dateListProp", NodePropertyType.DATE, listOf("2012-01-03T00:00:00Z", "2012-01-03T00:00:00Z"))
-        contentRepresentation.setProperty("nodeRef", NodePropertyType.NODE, "/")
-        contentRepresentation.setProperty("nodeRefList", NodePropertyType.NODE, listOf("/", "/"))
+    @Test
+    @DisplayName("should not be able to create a node that already exists in committed storage")
+    fun createExistingCommittedNode() {
+        dataPartitionAdapter.writeNodeRepresentations(Flux.just(DefaultRevisionedNodeRepresentation(Path("/child1"), RevisionNumber(0), NodeType.UNSTRUCTURED, mutableMapOf(), State.NORMAL))).block()
 
-        val (node, response) = createNode(token, nodePath, contentRepresentation, hashMapOf())
-
-        assertEquals(200, response.statusCode, "Wrong HTTP status code")
-        val retNodeRepresentation: NodeRepresentation = response.body.to()
-        assertNotNull(retNodeRepresentation, "No node returned")
-        assertEquals(nodeName, retNodeRepresentation.getName(), "name mismatch")
-        assertEquals(nodePath, retNodeRepresentation.getPath(), "path mismatch")
-
-        val testProp = node.getProperties()
-        val compProp = node.getProperties()
-        testProp.forEach { (name, propertyValue) ->
-            val compValue = compProp[name]
-            assertNotNull(compValue, "Missing property $name")
-            assertEquals(propertyValue, compValue, "Mismatch for property $name")
+        val session = getSession().block()!!
+        assertThrows(NodeCreationException::class.java) {
+            session.rootNode().flatMap { node ->
+                node.createChild("child1", NodeType.UNSTRUCTURED, mutableMapOf())
+            }.block()!!
         }
     }
 
     @Test
-    @DisplayName("should return a 409 when asked to create a node that already exists")
+    @DisplayName("should not be able to create a node that already exists in the same session")
     fun createExistingNode() {
-        val nodeName = "node2"
-        val nodePath = "/$nodeName"
+        val session = getSession().block()!!
+        session.rootNode().flatMap { node ->
+            node.createChild("child1", NodeType.UNSTRUCTURED, mutableMapOf())
+        }.block()!!
 
-        val token = getLoginToken()
-
-        // create the node
-        val repr = NodeContentRepresentation()
-        repr.setNodeType(NodeType.UNSTRUCTURED.toString())
-        val (_, res1) = createNode(token, nodePath, repr, hashMapOf())
-        assertEquals(200, res1.statusCode, "Wrong HTTP status code")
-
-        log.info("Creating product again")
-
-        // try to create it again
-        val repr2 = NodeContentRepresentation()
-        repr2.setNodeType(NodeType.UNSTRUCTURED.toString())
-        val (_, response) = createNode(token, nodePath, repr2, hashMapOf())
-
-        assertEquals(409, response.statusCode, "Wrong HTTP status code")
+        assertThrows(NodeCreationException::class.java) {
+            session.rootNode().flatMap { node ->
+                node.createChild("child1", NodeType.UNSTRUCTURED, mutableMapOf())
+            }.block()!!
+        }
     }
 
     @Test
-    @DisplayName("should return a 403 Forbidden when asked to create a node whose parent doesn't exist")
-    fun createNodeForNonexistentParent() {
-        val nodeName = "node3"
-        val nodePath = "/noparent/$nodeName"
+    @DisplayName("should be able to create a node as a child of a node that exists in committed storage")
+    fun createNonexistentChildNode() {
+        dataPartitionAdapter.writeNodeRepresentations(Flux.just(DefaultRevisionedNodeRepresentation(Path("/child1"), RevisionNumber(0), NodeType.UNSTRUCTURED, mutableMapOf(), State.NORMAL))).block()
 
-        val token = getLoginToken()
-        val repr = NodeContentRepresentation()
-        repr.setNodeType(NodeType.UNSTRUCTURED.toString())
-
-        val (_, response) = createNode(token, nodePath, repr, hashMapOf())
-
-        assertEquals(403, response.statusCode, "Wrong HTTP status code")
+        val session = getSession().block()!!
+        session.rootNode().flatMap { node ->
+            node.createChild("/child1/child2", NodeType.UNSTRUCTURED, mutableMapOf())
+        }.block()!!
     }
 
     @Test
-    @DisplayName("should be able to create a node with a binary property")
-    fun createNodeWithBinaryProperty() {
-        val nodeName = "node4"
-        val nodePath = "/$nodeName"
+    @DisplayName("should not be able to create a node with an invalid node reference")
+    fun createNodeWithInvalidNodeReference() {
+        val session = getSession().block()!!
 
-        val nodeRepresentation = NodeContentRepresentation()
-        nodeRepresentation.setNodeType(NodeType.UNSTRUCTURED.toString())
-        val nodeProp = SingleValueNodeProperty()
-        nodeProp.setValue("testfile")
-        nodeProp.setType(NodePropertyType.BINARY_INPUT)
-        nodeRepresentation.setProperties(hashMapOf(
-                "binary" to nodeProp
-        ))
-
-        val token = getLoginToken()
-
-        val bytes: ByteArray = byteArrayOf(1, 2, 3, 4, 5)
-        val bais = ByteArrayInputStream(bytes)
-        val fileMap = hashMapOf("testfile" to bais)
-
-        val (_, response) = createNode(token, nodePath, nodeRepresentation, fileMap)
-        assertEquals(200, response.statusCode, "Wrong HTTP status code")
-        val retNodeRepresentation: NodeRepresentation = response.body.to()
-        assertNotNull(retNodeRepresentation, "No node returned")
-        assertEquals(nodeName, retNodeRepresentation.getName(), "name mismatch")
-        assertEquals(nodePath, retNodeRepresentation.getPath(), "path mismatch")
+        val props = mutableMapOf<String, Any>("badNodeRef" to NodeReference("/no/such/node"))
+        assertThrows(NodeCreationException::class.java) {
+            session.rootNode().flatMap { node ->
+                node.createChild("child1", NodeType.UNSTRUCTURED, props)
+            }.block()!!
+        }
     }
+
+    @Test
+    @DisplayName("should not be able to create a node with an invalid binary reference")
+    fun createNodeWithInvalidBinaryReference() {
+        val session = getSession().block()!!
+
+        val props = mutableMapOf<String, Any>("badBinRef" to BinaryReference("no/such/bin/ref"))
+        assertThrows(NodeCreationException::class.java) {
+            session.rootNode().flatMap { node ->
+                node.createChild("child1", NodeType.UNSTRUCTURED, props)
+            }.block()!!
+        }
+    }
+
+
 
 }

@@ -17,6 +17,7 @@
 
 package org.assetfabric.storage.spi.metadata
 
+import org.assetfabric.storage.Path
 import org.assetfabric.storage.RevisionNumber
 import org.assetfabric.storage.spi.JournalEntryNodeRepresentation
 import org.assetfabric.storage.spi.RevisionedNodeRepresentation
@@ -38,12 +39,12 @@ interface DataPartitionAdapter {
     /**
      * Returns the node representation for the given path, visible at the given revision.
      */
-    fun nodeRepresentation(revision: RevisionNumber, path: String): Mono<RevisionedNodeRepresentation>
+    fun nodeRepresentation(revision: RevisionNumber, path: Path): Mono<RevisionedNodeRepresentation>
 
     /**
      * Returns the representations of the nodes that are children of the node at the given path.
      */
-    fun nodeChildRepresentations(revision: RevisionNumber, path: String): Flux<RevisionedNodeRepresentation>
+    fun nodeChildRepresentations(revision: RevisionNumber, path: Path): Flux<RevisionedNodeRepresentation>
 
     /**
      * Resets the data partition to its default initial state.

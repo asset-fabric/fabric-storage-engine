@@ -21,14 +21,17 @@ import org.assetfabric.storage.NodeType
 import org.assetfabric.storage.State
 import org.assetfabric.storage.spi.NodeContentRepresentation
 
-class DefaultNodeContentRepresentation(val nodeType: NodeType, val properties: MutableMap<String, Any>, val state: State): NodeContentRepresentation {
+class DefaultNodeContentRepresentation(private val nodeType: NodeType, private val properties: MutableMap<String, Any>, state: State): NodeContentRepresentation {
 
     var currentState: State
+
+    var currentProperties: MutableMap<String, Any>
 
     constructor(): this(NodeType.UNSTRUCTURED, hashMapOf(), State.NORMAL)
 
     init {
         currentState = state
+        currentProperties = properties
     }
 
     constructor(properties: MutableMap<String, Any>): this(NodeType.UNSTRUCTURED, properties, State.NORMAL)
@@ -42,6 +45,10 @@ class DefaultNodeContentRepresentation(val nodeType: NodeType, val properties: M
     override fun nodeType(): NodeType = nodeType
 
     override fun properties(): MutableMap<String, Any> = properties
+
+    override fun setProperties(props: MutableMap<String, Any>) {
+        currentProperties = props
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

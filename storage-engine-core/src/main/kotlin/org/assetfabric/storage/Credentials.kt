@@ -15,19 +15,17 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.assetfabric.storage.spi.support
+package org.assetfabric.storage
 
-import org.assetfabric.storage.NodeType
-import org.assetfabric.storage.Path
-import org.assetfabric.storage.RevisionNumber
-import org.assetfabric.storage.State
-import org.assetfabric.storage.spi.NodeRepresentation
-import org.assetfabric.storage.spi.RevisionedNodeRepresentation
+open class Credentials() {
 
-class DefaultRevisionedNodeRepresentation(val revision: RevisionNumber, nodeRepr: NodeRepresentation): RevisionedNodeRepresentation, NodeRepresentation by nodeRepr {
+    constructor(uname: String, pw: String): this() {
+        this.username = uname
+        this.password = pw
+    }
 
-    constructor(path: Path, revision: RevisionNumber, nodeType: NodeType, properties: MutableMap<String, Any>, state: State): this(revision, DefaultNodeRepresentation(path, nodeType, state, properties))
+    open var username: String? = null
 
-    override fun revision(): RevisionNumber = revision
+    open var password: String? = null
 
 }

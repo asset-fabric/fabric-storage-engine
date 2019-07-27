@@ -15,17 +15,12 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.assetfabric.storage.rest
+package org.assetfabric.storage
 
-open class Credentials() {
+class NodeDeletionException: RuntimeException {
 
-    constructor(uname: String, pw: String): this() {
-        this.username = uname
-        this.password = pw
-    }
+    constructor(message: String): super(message)
 
-    open var username: String? = null
-
-    open var password: String? = null
+    constructor(throwable: Throwable): super(throwable)
 
 }

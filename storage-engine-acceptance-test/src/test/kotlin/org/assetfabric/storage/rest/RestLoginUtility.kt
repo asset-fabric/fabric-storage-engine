@@ -15,15 +15,15 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.assetfabric.storage
+package org.assetfabric.storage.rest
 
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
-import org.assetfabric.storage.rest.Credentials
+import org.assetfabric.storage.Credentials
 import org.assetfabric.storage.server.controller.Constants.API_TOKEN
 import org.junit.jupiter.api.Assertions
 
-class LoginUtility {
+class RestLoginUtility {
 
     fun getTokenForUser(sessionUrl: String, name: String, pass: String): String {
         val creds = Credentials(name, pass)

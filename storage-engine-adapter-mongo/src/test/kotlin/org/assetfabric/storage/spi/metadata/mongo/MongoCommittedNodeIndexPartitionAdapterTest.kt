@@ -70,8 +70,8 @@ class MongoCommittedNodeIndexPartitionAdapterTest {
     }
 
     @Test
-    @DisplayName("should be able to retrieve all committed node references at a given revision")
-    fun testGetSessionWorkingNodes() {
+    @DisplayName("should be able to retrieve all committed references to a node at a given revision")
+    fun testGetNodeCommittedReferences() {
         // source1 refers to target1 at revision 1
         val repr1 = DefaultCommittedInverseNodeReferenceRepresentation(RevisionNumber(1), Path("/target1"), Path("/source1"), State.NORMAL)
         // source2 refers to target1 at revision 2
@@ -94,6 +94,22 @@ class MongoCommittedNodeIndexPartitionAdapterTest {
         assertEquals(2, rev3.size)
         assertTrue(rev3.contains(repr2))
         assertTrue(rev3.contains(repr3))
+    }
+
+    @Test
+    @DisplayName("should be able to retrieve all committed references to a node and its children at a given revision")
+    fun testGetNodeAndChildCommittedReferences() {
+        val repr1 = DefaultCommittedInverseNodeReferenceRepresentation(RevisionNumber(1), Path("/target1"), Path("/source1"), State.NORMAL)
+        val repr2 = DefaultCommittedInverseNodeReferenceRepresentation(RevisionNumber(2), Path("/target1/child1"), Path("/source2"), State.NORMAL)
+        val repr3 = DefaultCommittedInverseNodeReferenceRepresentation(RevisionNumber(3), Path("/target1/child1/child3"), Path("/source1"), State.DELETED)
+
+        partitionAdapter.createInverseNodeReferences(Flux.just(repr1, repr2, repr3)).collectList().block()
+
+        val rev1 = partitionAdapter.nodeReferencesAtOrBelow(Path("/target1"), RevisionNumber(3)).collectList().block()!!
+        assertEquals(3, rev1.size)
+
+        val rev2 = partitionAdapter.nodeReferencesAtOrBelow(Path("/"), RevisionNumber(2)).collectList().block()!!
+        assertEquals(2, rev2.size)
 
     }
 

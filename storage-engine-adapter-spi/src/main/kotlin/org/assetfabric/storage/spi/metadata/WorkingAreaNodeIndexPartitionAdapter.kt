@@ -40,6 +40,13 @@ interface WorkingAreaNodeIndexPartitionAdapter {
     fun nodeReferences(sessionId: String, nodePath: Path): Flux<WorkingAreaInverseNodeReferenceRepresentation>
 
     /**
+     * Returns the current references to nodes at or below the given node path within the given session.
+     * @param sessionId the ID of the session for which references should be retrieved
+     * @param nodePath the path of the node for which references, and references to its children, should be retrieved
+     */
+    fun nodeReferencesAtOrBelow(sessionId: String, nodePath: Path): Flux<WorkingAreaInverseNodeReferenceRepresentation>
+
+    /**
      * Deletes the current node references from the node index for the given session.
      * @param sessionId the ID of the session for which the current references should be returned
      */

@@ -15,11 +15,10 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.assetfabric.storage
+package org.assetfabric.storage.rest
 
 import io.restassured.RestAssured
-import org.assetfabric.storage.rest.NodeContentRepresentation
-import org.assetfabric.storage.rest.NodePropertyType
+import org.assetfabric.storage.NodeType
 import org.assetfabric.storage.server.Application
 import org.assetfabric.storage.server.controller.Constants.API_TOKEN
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -28,14 +27,12 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpStatus
-import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit.jupiter.SpringExtension
 
 @ExtendWith(SpringExtension::class)
-@DirtiesContext
 @SpringBootTest(classes = [Application::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DisplayName("the session controller")
-class SessionTest: AbstractTest() {
+class RestSessionTest: RestAbstractTest() {
 
     @Test
     @DisplayName("should commit working area changes when the session is committed")

@@ -17,4 +17,10 @@
 
 package org.assetfabric.storage
 
-class NodeModificationException(message: String): RuntimeException(message)
+class NodeModificationException: RuntimeException {
+
+    constructor(message: String): super(message)
+
+    constructor(throwable: Throwable): super(throwable)
+
+}

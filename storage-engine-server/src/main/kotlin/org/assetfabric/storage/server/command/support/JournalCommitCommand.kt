@@ -31,6 +31,8 @@ import org.assetfabric.storage.spi.metadata.CatalogPartitionAdapter
 import org.assetfabric.storage.spi.metadata.CommittedNodeIndexPartitionAdapter
 import org.assetfabric.storage.spi.metadata.DataPartitionAdapter
 import org.assetfabric.storage.spi.metadata.JournalPartitionAdapter
+import org.assetfabric.storage.spi.metadata.WorkingAreaNodeIndexPartitionAdapter
+import org.assetfabric.storage.spi.metadata.WorkingAreaPartitionAdapter
 import org.assetfabric.storage.spi.support.DefaultCommittedInverseNodeReferenceRepresentation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.config.BeanDefinition
@@ -78,7 +80,6 @@ class JournalCommitCommand(val session: Session): ReturningCommand<RevisionNumbe
 
             val writeEntries = dataPartitionAdapter.writeJournalEntries(writeJournalFlux)
             val writeIndexes = nodeIndexPartitionAdapter.createInverseNodeReferences(createNodeIndexEntries(revision, indexEntryFlux)).then()
-
             val deleteEntries = Mono.defer { journalPartitionAdapter.removeJournalEntrySet(revision) }
             val updateRevision = Mono.defer { catalogPartitionAdapter.setRepositoryRevision(revision) }
             val updateSession = Mono.defer { sessionService.updateSession(session.getSessionID(), revision) }

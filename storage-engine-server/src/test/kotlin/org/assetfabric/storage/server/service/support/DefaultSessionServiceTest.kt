@@ -19,8 +19,8 @@ package org.assetfabric.storage.server.service.support
 
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.eq
+import org.assetfabric.storage.Credentials
 import org.assetfabric.storage.RevisionNumber
-import org.assetfabric.storage.rest.Credentials
 import org.assetfabric.storage.server.model.DefaultSession
 import org.assetfabric.storage.server.service.SessionService
 import org.assetfabric.storage.server.service.clustering.ClusterSessionInfo
@@ -70,6 +70,7 @@ class DefaultSessionServiceTest {
     @BeforeEach
     private fun init() {
         reset(mockAuthProvider)
+        `when`(metadataManagerService.repositoryRevision()).thenReturn(Mono.just(RevisionNumber(0)))
         `when`(mockAuthProvider.supports(UsernamePasswordAuthenticationToken::class.java)).thenReturn(true)
         reset(clusterService)
     }
@@ -84,7 +85,7 @@ class DefaultSessionServiceTest {
         val creds = mock(Credentials::class.java)
         `when`(creds.username).thenReturn("user")
         `when`(creds.password).thenReturn("pass")
-        val session = sessionService.getSession(creds, RevisionNumber(0)).blockOptional()
+        val session = sessionService.getSession(creds).blockOptional()
         assertTrue(session.isPresent, "session not returned")
     }
 
@@ -93,7 +94,7 @@ class DefaultSessionServiceTest {
     fun getSessionWithNoUsername() {
         val creds = mock(Credentials::class.java)
         `when`(creds.password).thenReturn("pass")
-        val session = sessionService.getSession(creds, RevisionNumber(0)).blockOptional()
+        val session = sessionService.getSession(creds).blockOptional()
         assertFalse(session.isPresent, "session returned")
     }
 
@@ -102,7 +103,7 @@ class DefaultSessionServiceTest {
     fun getSessionWithNoPassword() {
         val creds = mock(Credentials::class.java)
         `when`(creds.username).thenReturn("user")
-        val session = sessionService.getSession(creds, RevisionNumber(0)).blockOptional()
+        val session = sessionService.getSession(creds).blockOptional()
         assertFalse(session.isPresent, "session returned")
     }
 
@@ -115,7 +116,7 @@ class DefaultSessionServiceTest {
         val creds = mock(Credentials::class.java)
         `when`(creds.username).thenReturn("user")
         `when`(creds.password).thenReturn("pass")
-        val session = sessionService.getSession(creds, RevisionNumber(0)).blockOptional()
+        val session = sessionService.getSession(creds).blockOptional()
         assertFalse(session.isPresent, "session returned")
     }
 

@@ -146,7 +146,7 @@ class DefaultNodeController: NodeController {
 
     override fun deleteNode(token: String, path: String): Mono<ResponseEntity<Void>> {
         return sessionExecutor.executeWithSession(token) { session ->
-            val deleteCommand = context.getBean(NodeDeleteCommand::class.java, session, path)
+            val deleteCommand = context.getBean(NodeDeleteCommand::class.java, session, Path(path))
             deleteCommand.execute()
         }.then(Mono.just(ResponseEntity.ok().build()))
     }

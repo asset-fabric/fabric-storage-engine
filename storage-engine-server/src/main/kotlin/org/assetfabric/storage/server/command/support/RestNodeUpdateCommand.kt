@@ -22,6 +22,7 @@ import org.assetfabric.storage.NodeModificationException
 import org.assetfabric.storage.NodeNotFoundException
 import org.assetfabric.storage.Path
 import org.assetfabric.storage.Session
+import org.assetfabric.storage.State
 import org.assetfabric.storage.rest.NodeRepresentation
 import org.assetfabric.storage.server.service.MetadataManagerService
 import org.springframework.beans.factory.annotation.Autowired
@@ -68,12 +69,12 @@ class RestNodeUpdateCommand(session: Session, nodePath: Path, requestParts: Flux
 
                 log.debug("Updating node")
 
-                metadataManagerService.updateNode(session, nodePath.toString(), props).map {
+                metadataManagerService.updateNode(session, nodePath, props, State.NORMAL).map {
                     val nodeRepresentation = it.effectiveNodeRepresentation()
 
                     val retNode = NodeRepresentation()
                     retNode.setName(nodeName)
-                    retNode.setPath(nodePath.toString())
+                    retNode.setPath(nodePath.path)
                     retNode.setNodeType(nodeRepresentation.nodeType().toString())
                     retNode.setProperties(nodeMapper.getExternalPropertyRepresentation(nodeRepresentation.properties()))
                     retNode

@@ -17,6 +17,7 @@
 
 package org.assetfabric.storage.spi.metadata
 
+import org.assetfabric.storage.Path
 import org.assetfabric.storage.spi.WorkingAreaNodeRepresentation
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -38,14 +39,14 @@ interface WorkingAreaPartitionAdapter {
      * @param path the path of the node representation to retrieve
      * @return the working copy of the node representation, or empty if no representation exists
      */
-    fun nodeRepresentation(sessionId: String, path: String): Mono<WorkingAreaNodeRepresentation>
+    fun nodeRepresentation(sessionId: String, path: Path): Mono<WorkingAreaNodeRepresentation>
 
     /**
      * Returns the working nodes of the child nodes for the given session and path.
      * @param sessionId the session ID for which the representations should be retrieved
      * @param parentPath the path of the node whose children should be returned
      */
-    fun nodeChildRepresentations(sessionId: String, parentPath: String): Flux<WorkingAreaNodeRepresentation>
+    fun nodeChildRepresentations(sessionId: String, parentPath: Path): Flux<WorkingAreaNodeRepresentation>
 
     /**
      * Returns a stream of working area node representations for the given session.

@@ -18,6 +18,7 @@
 package org.assetfabric.storage.spi.metadata.mongo
 
 import org.apache.logging.log4j.LogManager
+import org.assetfabric.storage.Path
 import org.assetfabric.storage.spi.WorkingAreaNodeRepresentation
 import org.assetfabric.storage.spi.metadata.WorkingAreaPartitionAdapter
 import org.assetfabric.storage.spi.metadata.mongo.MongoTemplateConfiguration.MongoTemplateConfiguration.WORKING_AREA
@@ -61,11 +62,11 @@ class MongoWorkingAreaPartitionAdapter: WorkingAreaPartitionAdapter {
         }
     }
 
-    override fun nodeRepresentation(sessionId: String, path: String): Mono<WorkingAreaNodeRepresentation> {
+    override fun nodeRepresentation(sessionId: String, path: Path): Mono<WorkingAreaNodeRepresentation> {
         var query = Query()
         val criteria = Criteria().andOperator(
                 Criteria.where("sessionId").`is`(sessionId),
-                Criteria.where("path").`is`(path))
+                Criteria.where("path").`is`(path.path))
         query = query.addCriteria(criteria)
                 .with(Sort(Sort.Direction.DESC, "revision"))
                 .limit(1)
@@ -73,11 +74,11 @@ class MongoWorkingAreaPartitionAdapter: WorkingAreaPartitionAdapter {
         return provider.template.findOne(query, WorkingAreaNodeRepresentation::class.java, workingAreaCollectionName)
     }
 
-    override fun nodeChildRepresentations(sessionId: String, parentPath: String): Flux<WorkingAreaNodeRepresentation> {
+    override fun nodeChildRepresentations(sessionId: String, parentPath: Path): Flux<WorkingAreaNodeRepresentation> {
         var query = Query()
         val criteria = Criteria().andOperator(
                 Criteria.where("sessionId").`is`(sessionId),
-                Criteria.where("parentPath").`is`(parentPath))
+                Criteria.where("parentPath").`is`(parentPath.path))
         query = query.addCriteria(criteria)
                 .with(Sort(Sort.Direction.ASC, "path"))
         return provider.template.find(query, WorkingAreaNodeRepresentation::class.java, workingAreaCollectionName)

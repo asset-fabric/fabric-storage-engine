@@ -38,15 +38,15 @@ class JournalEntryNodeRepresentationTest {
     fun testCalculatedChanges() {
         val priorNodeContent = DefaultNodeContentRepresentation()
 
-        priorNodeContent.properties["stringProp"] = "testing"
-        priorNodeContent.properties["intListProp"] = TypedList(ListType.INTEGER, listOf(1, 2, 3, 4))
-        priorNodeContent.properties["nodeRef"] = NodeReference("/node2")
-        priorNodeContent.properties["binRef"] = BinaryReference("some/binary/path")
+        priorNodeContent.properties()["stringProp"] = "testing"
+        priorNodeContent.properties()["intListProp"] = TypedList(ListType.INTEGER, listOf(1, 2, 3, 4))
+        priorNodeContent.properties()["nodeRef"] = NodeReference("/node2")
+        priorNodeContent.properties()["binRef"] = BinaryReference("some/binary/path")
 
         val newNodeContent = DefaultNodeContentRepresentation()
-        newNodeContent.properties["booleanProp"] = true
-        newNodeContent.properties["stringProp"] = "testing again"
-        newNodeContent.properties.remove("binRef")
+        newNodeContent.properties()["booleanProp"] = true
+        newNodeContent.properties()["stringProp"] = "testing again"
+        newNodeContent.properties().remove("binRef")
 
         val journalEntry = DefaultJournalEntryNodeRepresentation("testSession", Path("/node1"), RevisionNumber(1), NodeType.UNSTRUCTURED, priorNodeContent, newNodeContent)
         val addedProps = journalEntry.addedProperties()

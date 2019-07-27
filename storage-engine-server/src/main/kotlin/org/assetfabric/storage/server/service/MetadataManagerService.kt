@@ -18,8 +18,10 @@
 package org.assetfabric.storage.server.service
 
 import org.assetfabric.storage.NodeType
+import org.assetfabric.storage.Path
 import org.assetfabric.storage.RevisionNumber
 import org.assetfabric.storage.Session
+import org.assetfabric.storage.State
 import org.assetfabric.storage.spi.NodeRepresentation
 import org.assetfabric.storage.spi.WorkingAreaNodeRepresentation
 import reactor.core.publisher.Flux
@@ -28,7 +30,7 @@ import reactor.core.publisher.Mono
 /**
  * Governs the high-level logic surrounding the manipulation of node metadata.  The metadata
  * manager sits atop a variety of back-end adapters that provide access to the various
- * sections of the metadata store, including the catalog, working area, journal, current data partition,
+ * sections of the metadata store, including the catalog, working area, journal, committed data partition,
  * and archived data partitions.
  *
  * The metadata manager service is not concerned with working with [Node]s.  It is only concerned
@@ -55,7 +57,7 @@ interface MetadataManagerService {
      * @param path the path of the node representation to retrieve
      * @return either the working copy or committed copy of the node, or empty if neither exist
      */
-    fun nodeRepresentation(session: Session, path: String): Mono<NodeRepresentation>
+    fun nodeRepresentation(session: Session, path: Path): Mono<NodeRepresentation>
 
     /**
      * Returns the children of the node at the given path, either from the active data partition
@@ -63,7 +65,7 @@ interface MetadataManagerService {
      * @param session the session being used to retrieve the child nodes
      * @param path the path of the node whose children should be returned
      */
-    fun childNodeRepresentations(session: Session, path: String): Flux<NodeRepresentation>
+    fun childNodeRepresentations(session: Session, path: Path): Flux<NodeRepresentation>
 
     /**
      * Creates a new, uncommitted node representation in the metadata store's working set for the given session.
@@ -73,16 +75,28 @@ interface MetadataManagerService {
      * @param properties the properties of the new node
      * @return a representation of the new, uncommitted node
      */
-    fun createNode(session: Session, parentPath: String, name: String, nodeType: NodeType, properties: MutableMap<String, Any>): Mono<out WorkingAreaNodeRepresentation>
+    fun createNode(session: Session, parentPath: Path, name: String, nodeType: NodeType, properties: MutableMap<String, Any>): Mono<out WorkingAreaNodeRepresentation>
 
     /**
      * Updates the node at the given path with the specified properties.
      * @param session the session being used to update the node
      * @param path the path of the node
      * @param properties the new properties of the node
+     * @param state the new state of the node
      * @return the updated working representation of the node
+     *
      */
-    fun updateNode(session: Session, path: String, properties: MutableMap<String, Any>): Mono<out WorkingAreaNodeRepresentation>
+    fun updateNode(session: Session, path: Path, properties: MutableMap<String, Any>, state: State): Mono<out WorkingAreaNodeRepresentation>
+
+    /**
+     * Returns the node representations in the working set and committed set that contain [NodeReference]s to the given node.
+     */
+    fun referringNodes(session: Session, path: Path): Flux<NodeRepresentation>
+
+    /**
+     * Deletes the node at the given path using the given session.
+     */
+    fun deleteNode(session: Session, path: Path): Mono<Void>
 
     /**
      * Commits the given session, saving its working changes to permanent storage.

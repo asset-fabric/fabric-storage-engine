@@ -23,7 +23,6 @@ import org.assetfabric.storage.Path
 import org.assetfabric.storage.RevisionNumber
 import org.assetfabric.storage.Session
 import org.assetfabric.storage.State
-import org.assetfabric.storage.server.command.support.NodeCreateCommand
 import org.assetfabric.storage.server.service.MetadataManagerService
 import org.assetfabric.storage.spi.NodeRepresentation
 import org.assetfabric.storage.spi.RevisionedNodeRepresentation
@@ -62,14 +61,41 @@ class DefaultNode(val session: Session, val nodeRepresentation: NodeRepresentati
 
     override fun properties(): Map<String, Any> = nodeRepresentation.properties()
 
+    override fun setProperties(properties: MutableMap<String, Any>): Mono<Void> {
+        nodeRepresentation.setProperties(properties)
+        return metadataManagerService.updateNode(session, path(), properties, state()).then()
+    }
+
     override fun createChild(name: String, nodeType: NodeType, properties: MutableMap<String, Any>): Mono<Node> {
-        val command = context.getBean(NodeCreateCommand::class.java, session, path().toString(), name, nodeType, properties)
-        return command.execute()
+        return metadataManagerService.createNode(session, path(), name, nodeType, properties).map {
+            context.getBean(DefaultNode::class.java, session, it.effectiveNodeRepresentation())
+        }
+    }
+
+    override fun child(name: String): Mono<Node> {
+        val childPath = path().childPath(name)
+        return metadataManagerService.nodeRepresentation(session, childPath).map {
+            context.getBean(DefaultNode::class.java, session, it)
+        }
     }
 
     override fun children(): Flux<Node> {
-        val childrenFlux = metadataManagerService.childNodeRepresentations(session, path().toString())
+        val childrenFlux = metadataManagerService.childNodeRepresentations(session, path())
         return childrenFlux.map { context.getBean(DefaultNode::class.java, session, it) }
+    }
+
+    override fun stringProperty(name: String): String? {
+        return nodeRepresentation.properties()[name] as String?
+    }
+
+    override fun referringNodes(): Flux<Node> {
+        return metadataManagerService.referringNodes(session, path()).map {
+            context.getBean(DefaultNode::class.java, session, it)
+        }
+    }
+
+    override fun delete(): Mono<Void> {
+        return metadataManagerService.deleteNode(session, path())
     }
 
     override fun toString(): String {

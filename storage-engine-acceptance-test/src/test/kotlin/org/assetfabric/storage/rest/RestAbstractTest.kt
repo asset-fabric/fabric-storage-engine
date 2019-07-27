@@ -15,26 +15,27 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.assetfabric.storage
+package org.assetfabric.storage.rest
 
 import io.restassured.RestAssured
 import io.restassured.response.Response
 import io.restassured.response.ResponseBodyExtractionOptions
 import io.restassured.specification.RequestSpecification
 import org.apache.logging.log4j.LogManager
-import org.assetfabric.storage.rest.NodeContentRepresentation
 import org.assetfabric.storage.server.controller.Constants
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import java.io.InputStream
 
 @ExtendWith(SpringExtension::class)
-abstract class AbstractTest {
+@DirtiesContext
+abstract class RestAbstractTest {
 
-    private val log = LogManager.getLogger(AbstractTest::class.java)
+    private val log = LogManager.getLogger(RestAbstractTest::class.java)
 
     private val sessionUrl = "/v1/session"
 
@@ -49,7 +50,7 @@ abstract class AbstractTest {
     @Value("\${test.password}")
     private lateinit var password: String
 
-    private val loginUtility = LoginUtility()
+    private val loginUtility = RestLoginUtility()
 
     protected inline fun <reified T> ResponseBodyExtractionOptions.to(): T {
         return this.`as`(T::class.java)

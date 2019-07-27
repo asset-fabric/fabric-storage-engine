@@ -17,9 +17,9 @@
 
 package org.assetfabric.storage.server.service
 
+import org.assetfabric.storage.Credentials
 import org.assetfabric.storage.RevisionNumber
 import org.assetfabric.storage.Session
-import org.assetfabric.storage.rest.Credentials
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 
@@ -30,12 +30,11 @@ import reactor.core.publisher.Mono
 interface SessionService {
 
     /**
-     * Creates a session for a user with the given credentials, at a given revision.
+     * Creates a session for a user with the given credentials, at the current repository revision.
      * @param credentials the credentials to use to authenticate a user
-     * @param revision the revision number that the session should use
      * @return a session if the credentials are valid, or an empty optional if not
      */
-    fun getSession(credentials: Credentials, revision: RevisionNumber): Mono<Session>
+    fun getSession(credentials: Credentials): Mono<Session>
 
     /**
      * Gets the active session with the given session token.
