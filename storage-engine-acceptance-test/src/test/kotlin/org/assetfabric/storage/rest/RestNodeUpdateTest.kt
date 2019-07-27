@@ -17,13 +17,17 @@
 
 package org.assetfabric.storage.rest
 
+import io.restassured.RestAssured
 import org.assetfabric.storage.NodeType
 import org.assetfabric.storage.server.Application
+import org.assetfabric.storage.server.service.support.DefaultMetadataManagerService
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.junit.jupiter.SpringExtension
 
@@ -31,6 +35,15 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 @SpringBootTest(classes = [Application::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DisplayName("the node controller")
 class RestNodeUpdateTest: RestAbstractTest() {
+
+    @Autowired
+    private lateinit var metadataManager: DefaultMetadataManagerService
+
+    @BeforeEach
+    private fun init() {
+        metadataManager.reset()
+        RestAssured.port = port.toInt()
+    }
 
     @Test
     @DisplayName("should be able to update an existing node")

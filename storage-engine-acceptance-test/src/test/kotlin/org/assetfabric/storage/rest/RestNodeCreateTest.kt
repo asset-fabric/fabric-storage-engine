@@ -21,7 +21,7 @@ import io.restassured.RestAssured
 import org.apache.logging.log4j.LogManager
 import org.assetfabric.storage.NodeType
 import org.assetfabric.storage.server.Application
-import org.assetfabric.storage.spi.metadata.WorkingAreaPartitionAdapter
+import org.assetfabric.storage.server.service.support.DefaultMetadataManagerService
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
@@ -29,9 +29,7 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import java.io.ByteArrayInputStream
 
@@ -42,18 +40,14 @@ class RestNodeCreateTest: RestAbstractTest() {
 
     private val log = LogManager.getLogger(RestNodeCreateTest::class.java)
 
-    @Value("\${local.server.port}")
-    private lateinit var port: Integer
-
     @Autowired
-    private lateinit var workingAreaPartitionAdapter: WorkingAreaPartitionAdapter
+    private lateinit var metadataManager: DefaultMetadataManagerService
 
     @BeforeEach
     private fun init() {
         RestAssured.port = port.toInt()
-        workingAreaPartitionAdapter.reset().block()
+        metadataManager.reset()
     }
-
 
     @Test
     @DisplayName("should be able to create a new node with all non-binary properties")

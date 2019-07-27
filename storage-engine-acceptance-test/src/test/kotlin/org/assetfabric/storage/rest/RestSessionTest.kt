@@ -23,6 +23,7 @@ import org.assetfabric.storage.server.Application
 import org.assetfabric.storage.server.controller.Constants.API_TOKEN
 import org.assetfabric.storage.server.service.support.DefaultMetadataManagerService
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -39,10 +40,15 @@ class RestSessionTest: RestAbstractTest() {
     @Autowired
     private lateinit var metadataManager: DefaultMetadataManagerService
 
+    @BeforeEach
+    private fun init() {
+        RestAssured.port = port.toInt()
+        metadataManager.reset()
+    }
+
     @Test
     @DisplayName("should commit working area changes when the session is committed")
     fun testJournalEntryCreation() {
-        metadataManager.reset()
 
         val token = getLoginToken()
 

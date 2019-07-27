@@ -29,6 +29,7 @@ import org.assetfabric.storage.State
 import org.assetfabric.storage.server.Application
 import org.assetfabric.storage.server.command.support.MetadataStoreResetCommand
 import org.assetfabric.storage.server.controller.Constants.API_TOKEN
+import org.assetfabric.storage.server.service.support.DefaultMetadataManagerService
 import org.assetfabric.storage.spi.metadata.CatalogPartitionAdapter
 import org.assetfabric.storage.spi.metadata.DataPartitionAdapter
 import org.assetfabric.storage.spi.support.DefaultRevisionedNodeRepresentation
@@ -50,7 +51,7 @@ import reactor.core.publisher.Flux
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(classes = [Application::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DisplayName("the node controller")
-class RestNodeRetrieveTest {
+class RestNodeRetrieveTest: RestAbstractTest() {
 
     private val log = LogManager.getLogger(RestNodeRetrieveTest::class.java)
 
@@ -78,30 +79,14 @@ class RestNodeRetrieveTest {
 
     private val loginUtility = RestLoginUtility()
 
-    @Value("\${local.server.port}")
-    private lateinit var port: Integer
-
-    private inline fun <reified T> ResponseBodyExtractionOptions.to(): T {
-        return this.`as`(T::class.java)
-    }
-
-    private fun getLoginToken(): String {
-        val token = loginUtility.getTokenForUser(sessionUrl, user, password)
-        Assertions.assertNotNull(token, "null session token")
-        log.info("Sending node create request with token $token")
-        return token
-    }
+    @Autowired
+    private lateinit var metadataManager: DefaultMetadataManagerService
 
     @BeforeEach
     private fun init() {
         RestAssuredWebTestClient.webTestClient(webTestClient)
-
         RestAssured.port = port.toInt()
-
-        val resetCommand = context.getBean(MetadataStoreResetCommand::class.java)
-        log.debug("Resetting repository")
-        resetCommand.execute().block()
-        log.debug("Repository reset complete")
+        metadataManager.reset()
     }
 
     @Test
