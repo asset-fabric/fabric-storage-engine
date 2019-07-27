@@ -66,7 +66,7 @@ class NodeRetrieveTest: AbstractNodeTest() {
         val session = getSession().block()!!
 
         val content = DefaultNodeContentRepresentation()
-        val wrepr = DefaultWorkingAreaNodeRepresentation(session.getSessionID(), Path("/some/node"), RevisionNumber(0), NodeType.UNSTRUCTURED, null, content)
+        val wrepr = DefaultWorkingAreaNodeRepresentation(session.getSessionID(), Path("/some/node"), NodeType.UNSTRUCTURED, null, content)
 
         workingAreaAdapter.createNodeRepresentation(wrepr).block()
 
@@ -80,7 +80,7 @@ class NodeRetrieveTest: AbstractNodeTest() {
         val session = getSession().block()!!
 
         val content = DefaultNodeContentRepresentation(NodeType.UNSTRUCTURED, mutableMapOf(), State.DELETED)
-        val wrepr = DefaultWorkingAreaNodeRepresentation(session.getSessionID(), Path("/some/node"), RevisionNumber(0), NodeType.UNSTRUCTURED, null, content)
+        val wrepr = DefaultWorkingAreaNodeRepresentation(session.getSessionID(), Path("/some/node"), NodeType.UNSTRUCTURED, null, content)
 
         workingAreaAdapter.createNodeRepresentation(wrepr).block()
 
@@ -96,7 +96,7 @@ class NodeRetrieveTest: AbstractNodeTest() {
         dataPartitionAdapter.writeNodeRepresentations(Flux.just(DefaultRevisionedNodeRepresentation(Path("/child1"), RevisionNumber(0), NodeType.UNSTRUCTURED, mutableMapOf(), State.NORMAL))).block()
 
         val content = DefaultNodeContentRepresentation(NodeType.UNSTRUCTURED, mutableMapOf(), State.NORMAL)
-        val wrepr = DefaultWorkingAreaNodeRepresentation(session.getSessionID(), Path("/child2"), RevisionNumber(0), NodeType.UNSTRUCTURED, null, content)
+        val wrepr = DefaultWorkingAreaNodeRepresentation(session.getSessionID(), Path("/child2"), NodeType.UNSTRUCTURED, null, content)
         workingAreaAdapter.createNodeRepresentation(wrepr).block()
 
         val rootNode = session.rootNode().block()!!
@@ -124,7 +124,7 @@ class NodeRetrieveTest: AbstractNodeTest() {
         dataPartitionAdapter.writeNodeRepresentations(Flux.just(DefaultRevisionedNodeRepresentation(Path("/child1"), RevisionNumber(0), NodeType.UNSTRUCTURED, mutableMapOf(), State.NORMAL))).block()
 
         val content = DefaultNodeContentRepresentation(NodeType.UNSTRUCTURED, mutableMapOf(), State.DELETED)
-        val wrepr = DefaultWorkingAreaNodeRepresentation(session.getSessionID(), Path("/child1"), RevisionNumber(0), NodeType.UNSTRUCTURED, null, content)
+        val wrepr = DefaultWorkingAreaNodeRepresentation(session.getSessionID(), Path("/child1"), NodeType.UNSTRUCTURED, null, content)
         workingAreaAdapter.createNodeRepresentation(wrepr).block()
 
         val rootNode = session.rootNode().block()!!
@@ -140,7 +140,7 @@ class NodeRetrieveTest: AbstractNodeTest() {
         dataPartitionAdapter.writeNodeRepresentations(Flux.just(DefaultRevisionedNodeRepresentation(Path("/child1"), RevisionNumber(0), NodeType.UNSTRUCTURED, mutableMapOf(), State.DELETED))).block()
 
         val content = DefaultNodeContentRepresentation(NodeType.UNSTRUCTURED, mutableMapOf(), State.NORMAL)
-        val wrepr = DefaultWorkingAreaNodeRepresentation(session.getSessionID(), Path("/child1"), RevisionNumber(0), NodeType.UNSTRUCTURED, null, content)
+        val wrepr = DefaultWorkingAreaNodeRepresentation(session.getSessionID(), Path("/child1"), NodeType.UNSTRUCTURED, null, content)
         workingAreaAdapter.createNodeRepresentation(wrepr).block()
 
         val rootNode = session.rootNode().block()!!

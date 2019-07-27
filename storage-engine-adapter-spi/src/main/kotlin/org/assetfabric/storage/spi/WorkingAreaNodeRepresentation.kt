@@ -19,19 +19,14 @@ package org.assetfabric.storage.spi
 
 import org.assetfabric.storage.NodeType
 import org.assetfabric.storage.Path
-import org.assetfabric.storage.RevisionNumber
 
 interface WorkingAreaNodeRepresentation {
 
     fun sessionId(): String
 
-    fun name(): String
-
     fun path(): Path
 
     fun nodeType(): NodeType
-
-    fun revision(): RevisionNumber
 
     fun permanentRepresentation(): NodeContentRepresentation?
 

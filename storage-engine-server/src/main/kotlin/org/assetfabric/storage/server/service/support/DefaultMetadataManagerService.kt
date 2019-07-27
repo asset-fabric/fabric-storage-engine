@@ -119,7 +119,7 @@ class DefaultMetadataManagerService : MetadataManagerService {
                 // map any inputstream properties to binary references
                 val mappedProperties = mapInputStreamsToBinaryReferences(properties)
 
-                val repr = DefaultWorkingAreaNodeRepresentation(session.getSessionID(), path, session.revision(), nodeType, null, DefaultNodeContentRepresentation(mappedProperties))
+                val repr = DefaultWorkingAreaNodeRepresentation(session.getSessionID(), path, nodeType, null, DefaultNodeContentRepresentation(mappedProperties))
 
                 val createOp = workingAreaPartitionAdapter.createNodeRepresentation(repr)
 
@@ -143,10 +143,10 @@ class DefaultMetadataManagerService : MetadataManagerService {
         val updatedWorkingAreaNodeMono = existingWorkingAreaNodeMono.map { war ->
             val existingContent = war.workingAreaRepresentation()
             val newContent = DefaultNodeContentRepresentation(existingContent.nodeType(), properties, state)
-            DefaultWorkingAreaNodeRepresentation(war.sessionId(), war.path(), war.revision(), war.nodeType(), war.permanentRepresentation(), newContent)
+            DefaultWorkingAreaNodeRepresentation(war.sessionId(), war.path(), war.nodeType(), war.permanentRepresentation(), newContent)
         }.switchIfEmpty(Mono.defer {
             dataPartitionAdapter.nodeRepresentation(session.revision(), path).map { existingNode ->
-                DefaultWorkingAreaNodeRepresentation(session.getSessionID(), path, session.revision(), existingNode.nodeType(), existingNode, DefaultNodeContentRepresentation(existingNode.nodeType(), properties, state))
+                DefaultWorkingAreaNodeRepresentation(session.getSessionID(), path, existingNode.nodeType(), existingNode, DefaultNodeContentRepresentation(existingNode.nodeType(), properties, state))
             }.switchIfEmpty(Mono.error(NodeNotFoundException("Node $path not found")))
         })
 

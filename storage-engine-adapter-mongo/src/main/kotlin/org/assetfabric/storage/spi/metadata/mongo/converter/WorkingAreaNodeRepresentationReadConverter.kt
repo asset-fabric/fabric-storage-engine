@@ -19,7 +19,6 @@ package org.assetfabric.storage.spi.metadata.mongo.converter
 
 import org.assetfabric.storage.NodeType
 import org.assetfabric.storage.Path
-import org.assetfabric.storage.RevisionNumber
 import org.assetfabric.storage.spi.WorkingAreaNodeRepresentation
 import org.assetfabric.storage.spi.support.DefaultWorkingAreaNodeRepresentation
 import org.bson.Document
@@ -33,10 +32,9 @@ class WorkingAreaNodeRepresentationReadConverter: Converter<Document, WorkingAre
         val path = Path(doc.getString("path"))
         val nodeType = NodeType(doc.getString("nodeType"))
         val sessionId = doc.getString("sessionId")
-        val revision = doc.getString("revision")
         val workingAreaRepresentation = readConverter.convert(doc.get("workingAreaRepresentation", Document::class.java))
 
-        return DefaultWorkingAreaNodeRepresentation(sessionId, path, RevisionNumber(revision), nodeType, null, workingAreaRepresentation)
+        return DefaultWorkingAreaNodeRepresentation(sessionId, path, nodeType, null, workingAreaRepresentation)
     }
 
 }

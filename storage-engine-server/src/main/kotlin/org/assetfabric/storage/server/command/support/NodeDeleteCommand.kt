@@ -50,7 +50,7 @@ class NodeDeleteCommand(val session: Session, val nodePath: Path): Command {
             dataPartitionAdapter.nodeRepresentation(session.revision(), nodePath).flatMap { existingNode ->
                 val contentRepr = DefaultNodeContentRepresentation(hashMapOf())
                 contentRepr.setState(State.DELETED)
-                val newWorkingAreaRepr = DefaultWorkingAreaNodeRepresentation(session.getSessionID(), nodePath, session.revision(), existingNode.nodeType(), existingNode, contentRepr)
+                val newWorkingAreaRepr = DefaultWorkingAreaNodeRepresentation(session.getSessionID(), nodePath, existingNode.nodeType(), existingNode, contentRepr)
                 workingAreaPartitionAdapter.createNodeRepresentation(newWorkingAreaRepr)
             }.switchIfEmpty(Mono.error(NodeNotFoundException("Node $nodePath not found")))
         }).then()

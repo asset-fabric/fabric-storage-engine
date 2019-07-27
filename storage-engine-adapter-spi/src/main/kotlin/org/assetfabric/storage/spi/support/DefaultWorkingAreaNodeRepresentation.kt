@@ -19,7 +19,6 @@ package org.assetfabric.storage.spi.support
 
 import org.assetfabric.storage.NodeType
 import org.assetfabric.storage.Path
-import org.assetfabric.storage.RevisionNumber
 import org.assetfabric.storage.spi.NodeContentRepresentation
 import org.assetfabric.storage.spi.NodeRepresentation
 import org.assetfabric.storage.spi.WorkingAreaNodeRepresentation
@@ -27,38 +26,22 @@ import org.assetfabric.storage.spi.WorkingAreaNodeRepresentation
 class DefaultWorkingAreaNodeRepresentation(
         val sessionId: String,
         val path: Path,
-        val revision: RevisionNumber,
         val nodeType: NodeType,
-        val permanentRepresentation: NodeContentRepresentation?,
+        private val permanentRepresentation: NodeContentRepresentation?,
         val workingAreaRepresentation: NodeContentRepresentation): WorkingAreaNodeRepresentation {
 
     override fun sessionId(): String = sessionId
 
-    override fun name(): String = path.nodeName()
-
     override fun path(): Path = path
 
     override fun nodeType(): NodeType = nodeType
-
-    // TODO: why would a working area node have a revision?
-    override fun revision(): RevisionNumber = revision
 
     override fun permanentRepresentation(): NodeContentRepresentation? = permanentRepresentation
 
     override fun workingAreaRepresentation(): NodeContentRepresentation = workingAreaRepresentation
 
     override fun effectiveNodeRepresentation(): NodeRepresentation {
-        val props = mutableMapOf<String, Any>()
-        if (permanentRepresentation != null) {
-            permanentRepresentation.properties().forEach {
-                props[it.key] = it.value
-            }
-        }
-        workingAreaRepresentation.properties().forEach {
-            props[it.key] = it.value
-        }
-
-        return DefaultNodeRepresentation(path, nodeType, workingAreaRepresentation.state(), props)
+        return DefaultNodeRepresentation(path, nodeType, workingAreaRepresentation.state(), workingAreaRepresentation().properties())
     }
 
 }

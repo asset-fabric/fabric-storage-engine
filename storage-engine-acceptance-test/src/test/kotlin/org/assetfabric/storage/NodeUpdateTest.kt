@@ -85,7 +85,7 @@ class NodeUpdateTest: AbstractNodeTest() {
                 "stringProp" to "oldString"
         )
         val contentRepr = DefaultNodeContentRepresentation(NodeType.UNSTRUCTURED, workingProps, State.NORMAL)
-        val workingRepr = DefaultWorkingAreaNodeRepresentation(session.getSessionID(), Path("/child1"), RevisionNumber(0), NodeType.UNSTRUCTURED, null, contentRepr)
+        val workingRepr = DefaultWorkingAreaNodeRepresentation(session.getSessionID(), Path("/child1"), NodeType.UNSTRUCTURED, null, contentRepr)
         workingAreaPartitionAdapter.createNodeRepresentation(workingRepr).block()
 
 

@@ -19,7 +19,6 @@ package org.assetfabric.storage.spi.metadata.mongo
 
 import org.assetfabric.storage.NodeType
 import org.assetfabric.storage.Path
-import org.assetfabric.storage.RevisionNumber
 import org.assetfabric.storage.State
 import org.assetfabric.storage.spi.metadata.WorkingAreaPartitionAdapter
 import org.assetfabric.storage.spi.support.DefaultNodeContentRepresentation
@@ -61,15 +60,13 @@ class MongoWorkingAreaPartitionAdapterTest {
         val path = Path("/test")
 
         val core = DefaultNodeContentRepresentation(hashMapOf("int" to 4))
-        val repr = DefaultWorkingAreaNodeRepresentation(sessionId, path, RevisionNumber(3), NodeType.UNSTRUCTURED, null, core)
+        val repr = DefaultWorkingAreaNodeRepresentation(sessionId, path, NodeType.UNSTRUCTURED, null, core)
 
         partitionAdapter.createNodeRepresentation(repr).subscribe {
             val opt = partitionAdapter.nodeRepresentation(sessionId, path).blockOptional()
             Assertions.assertTrue(opt.isPresent, "no working representation found")
             val retRepr = opt.get()
-            assertEquals(repr.name(), retRepr.name(), "name mismatch")
             assertEquals(repr.path, retRepr.path(), "path mismatch")
-            assertEquals(repr.revision, retRepr.revision(), "revision mismatch")
             assertEquals(repr.workingAreaRepresentation, retRepr.workingAreaRepresentation(), "working are representation mismatch")
         }
     }
@@ -81,7 +78,7 @@ class MongoWorkingAreaPartitionAdapterTest {
         val path = Path("/test")
 
         val core = DefaultNodeContentRepresentation(hashMapOf("int" to 4))
-        val repr = DefaultWorkingAreaNodeRepresentation(sessionId, path, RevisionNumber(3), NodeType.UNSTRUCTURED, null, core)
+        val repr = DefaultWorkingAreaNodeRepresentation(sessionId, path, NodeType.UNSTRUCTURED, null, core)
 
         partitionAdapter.createNodeRepresentation(repr).block()
 
@@ -99,12 +96,12 @@ class MongoWorkingAreaPartitionAdapterTest {
 
         val path1 = "/test"
         val core1 = DefaultNodeContentRepresentation(hashMapOf("int" to 4))
-        val repr1 = DefaultWorkingAreaNodeRepresentation(sessionId, Path(path1), RevisionNumber(3), NodeType.UNSTRUCTURED, null, core1)
+        val repr1 = DefaultWorkingAreaNodeRepresentation(sessionId, Path(path1), NodeType.UNSTRUCTURED, null, core1)
         val create1 = partitionAdapter.createNodeRepresentation(repr1)
 
         val path2 = "/test2"
         val core2 = DefaultNodeContentRepresentation(hashMapOf("int" to 5))
-        val repr2 = DefaultWorkingAreaNodeRepresentation(sessionId, Path(path2), RevisionNumber(3), NodeType.UNSTRUCTURED, null, core2)
+        val repr2 = DefaultWorkingAreaNodeRepresentation(sessionId, Path(path2), NodeType.UNSTRUCTURED, null, core2)
         val create2 = partitionAdapter.createNodeRepresentation(repr2)
 
         create1.then(create2).subscribe {
@@ -134,7 +131,7 @@ class MongoWorkingAreaPartitionAdapterTest {
         // create a test node
         val path1 = "/test"
         val core1 = DefaultNodeContentRepresentation(hashMapOf("int" to 4))
-        val repr1 = DefaultWorkingAreaNodeRepresentation(sessionId, Path(path1), RevisionNumber(3), NodeType.UNSTRUCTURED, null, core1)
+        val repr1 = DefaultWorkingAreaNodeRepresentation(sessionId, Path(path1), NodeType.UNSTRUCTURED, null, core1)
         partitionAdapter.createNodeRepresentation(repr1).subscribe {
             getNodeCount().subscribe { count -> assertEquals(1, count, "node count mismatch") }
         }
@@ -153,7 +150,7 @@ class MongoWorkingAreaPartitionAdapterTest {
         val path = "/test"
 
         val core = DefaultNodeContentRepresentation(hashMapOf("int" to 4))
-        val repr = DefaultWorkingAreaNodeRepresentation(sessionId, Path(path), RevisionNumber(3), NodeType.UNSTRUCTURED, null, core)
+        val repr = DefaultWorkingAreaNodeRepresentation(sessionId, Path(path), NodeType.UNSTRUCTURED, null, core)
 
         partitionAdapter.createNodeRepresentation(repr).block()
 
