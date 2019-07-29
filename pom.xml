@@ -35,6 +35,7 @@
         <module>storage-engine-server</module>
         <module>storage-engine-acceptance-test</module>
         <module>storage-engine-adapter-block</module>
+        <module>storage-engine-adapter-lucene</module>
     </modules>
 
     <properties>
