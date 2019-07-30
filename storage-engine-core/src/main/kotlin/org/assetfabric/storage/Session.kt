@@ -17,6 +17,7 @@
 
 package org.assetfabric.storage
 
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 /**
@@ -50,6 +51,11 @@ interface Session {
      * @return an optional containing the given node, or empty if the node doesn't exist
      */
     fun node(path: String): Mono<Node>
+
+    /**
+     * Returns the nodes that match the given search term.
+     */
+    fun search(term: String): Flux<Node>
 
     /**
      * Commits this session, saving working changes to permanent storage.

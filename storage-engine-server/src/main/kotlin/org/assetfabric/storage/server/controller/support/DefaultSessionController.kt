@@ -52,7 +52,7 @@ class DefaultSessionController: SessionController {
     }
 
     override fun commitSession(token: String): Mono<ResponseEntity<Void>> {
-        return sessionExecutor.executeWithSession(token) { session ->
+        return sessionExecutor.monoUsingSession(token) { session ->
             session.commit()
         }.then(Mono.just(ResponseEntity.ok().build()))
     }

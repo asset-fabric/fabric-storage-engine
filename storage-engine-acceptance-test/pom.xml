@@ -22,7 +22,7 @@
     <parent>
         <artifactId>storage-engine</artifactId>
         <groupId>org.assetfabric</groupId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>1.0.0.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -50,6 +50,12 @@
         <dependency>
             <groupId>org.assetfabric</groupId>
             <artifactId>storage-engine-adapter-block</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.assetfabric</groupId>
+            <artifactId>storage-engine-adapter-lucene</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
 

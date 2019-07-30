@@ -23,12 +23,13 @@ import org.assetfabric.storage.RevisionNumber
 import org.assetfabric.storage.Session
 import org.assetfabric.storage.server.service.MetadataManagerService
 import org.assetfabric.storage.server.service.SessionService
+import org.assetfabric.storage.spi.NodeRepresentation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.config.BeanDefinition
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Scope
-import org.springframework.data.history.Revision
 import org.springframework.stereotype.Component
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 @Component
@@ -63,6 +64,11 @@ class DefaultSession(private val sessionID: String, private val userID: String, 
     override fun node(path: String): Mono<Node> {
         val representationMono =  metadataManagerService.nodeRepresentation(this, Path(path))
         return representationMono.map { context.getBean(DefaultNode::class.java, this, it)  }
+    }
+
+    override fun search(term: String): Flux<Node> {
+        val representationFlux: Flux<NodeRepresentation> = metadataManagerService.search(this, term)
+        return representationFlux.map { context.getBean(DefaultNode::class.java, this, it) }
     }
 
     override fun commit(): Mono<Void> {

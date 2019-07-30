@@ -29,9 +29,15 @@ assetfabric:
         type: block
         block.folder: target/assetfabric
       deduplication.strategy: conservative
-    metadata.adapter:
-      type: mongo
-      mongo: embedded
+    metadata:
+      adapter:
+        type: mongo
+        mongo: embedded
+    search:
+      adapter:
+        type: lucene
+        lucene:
+          dir: target/lucene-index
 
 test:
   user: michacod

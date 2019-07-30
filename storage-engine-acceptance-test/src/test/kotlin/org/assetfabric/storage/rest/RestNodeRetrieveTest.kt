@@ -19,7 +19,6 @@ package org.assetfabric.storage.rest
 
 import io.restassured.RestAssured
 import io.restassured.module.webtestclient.RestAssuredWebTestClient
-import io.restassured.response.ResponseBodyExtractionOptions
 import org.apache.http.HttpStatus
 import org.apache.logging.log4j.LogManager
 import org.assetfabric.storage.NodeType
@@ -27,13 +26,11 @@ import org.assetfabric.storage.Path
 import org.assetfabric.storage.RevisionNumber
 import org.assetfabric.storage.State
 import org.assetfabric.storage.server.Application
-import org.assetfabric.storage.server.command.support.MetadataStoreResetCommand
 import org.assetfabric.storage.server.controller.Constants.API_TOKEN
 import org.assetfabric.storage.server.service.support.DefaultMetadataManagerService
 import org.assetfabric.storage.spi.metadata.CatalogPartitionAdapter
 import org.assetfabric.storage.spi.metadata.DataPartitionAdapter
 import org.assetfabric.storage.spi.support.DefaultRevisionedNodeRepresentation
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -43,7 +40,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.ApplicationContext
-import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.reactive.server.WebTestClient
 import reactor.core.publisher.Flux
@@ -55,15 +51,7 @@ class RestNodeRetrieveTest: RestAbstractTest() {
 
     private val log = LogManager.getLogger(RestNodeRetrieveTest::class.java)
 
-    private val sessionUrl = "/v1/session"
-
     private val nodeUrl = "/v1/node"
-
-    @Value("\${test.user}")
-    private lateinit var user: String
-
-    @Value("\${test.password}")
-    private lateinit var password: String
 
     @Autowired
     private lateinit var webTestClient: WebTestClient
@@ -73,11 +61,6 @@ class RestNodeRetrieveTest: RestAbstractTest() {
 
     @Autowired
     private lateinit var dataPartitionAdapter: DataPartitionAdapter
-
-    @Autowired
-    private lateinit var context: ApplicationContext
-
-    private val loginUtility = RestLoginUtility()
 
     @Autowired
     private lateinit var metadataManager: DefaultMetadataManagerService

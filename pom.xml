@@ -24,7 +24,7 @@
     <groupId>org.assetfabric</groupId>
     <artifactId>storage-engine</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0.1-SNAPSHOT</version>
 
     <modules>
         <module>storage-engine-api</module>
@@ -35,6 +35,7 @@
         <module>storage-engine-server</module>
         <module>storage-engine-acceptance-test</module>
         <module>storage-engine-adapter-block</module>
+        <module>storage-engine-adapter-lucene</module>
     </modules>
 
     <properties>
@@ -42,7 +43,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
-        <maven.testing.version>2.22.0</maven.testing.version>
+        <maven.testing.version>2.22.2</maven.testing.version>
 
         <kotlin.version>1.3.21</kotlin.version>
         <spring.boot.version>2.1.6.RELEASE</spring.boot.version>
@@ -227,6 +228,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven.testing.version}</version>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
@@ -244,6 +246,31 @@
                 <artifactId>maven-project-info-reports-plugin</artifactId>
                 <version>3.0.0</version>
             </plugin>
+
+            <plugin>
+                <groupId>org.jfrog.buildinfo</groupId>
+                <artifactId>artifactory-maven-plugin</artifactId>
+                <version>2.6.1</version>
+                <inherited>false</inherited>
+                <executions>
+                    <execution>
+                        <id>build-info</id>
+                        <goals>
+                            <goal>publish</goal>
+                        </goals>
+                        <configuration>
+                            <publisher>
+                                <contextUrl>https://assetfabric.jfrog.io/assetfabric</contextUrl>
+                                <username>${ARTIFACTORY_USERNAME}</username>
+                                <password>${ARTIFACTORY_PASSWORD}</password>
+                                <repoKey>libs-release</repoKey>
+                                <snapshotRepoKey>libs-snapshot</snapshotRepoKey>
+                            </publisher>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
 
@@ -285,7 +312,16 @@
             <name>jcenter</name>
             <url>http://oss.jfrog.org/artifactory/oss-snapshot-local/</url>
         </repository>
+
     </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>jcenter</id>
+            <name>JCenter</name>
+            <url>https://jcenter.bintray.com/</url>
+        </pluginRepository>
+    </pluginRepositories>
 
 
 </project>

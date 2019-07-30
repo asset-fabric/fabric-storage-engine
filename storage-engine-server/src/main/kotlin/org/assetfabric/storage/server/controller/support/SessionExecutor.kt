@@ -21,7 +21,9 @@ import org.assetfabric.storage.Session
 import org.assetfabric.storage.server.service.SessionService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.core.publisher.toFlux
 
 @Component
 class SessionExecutor {
@@ -29,9 +31,14 @@ class SessionExecutor {
     @Autowired
     private lateinit var sessionService: SessionService
 
-    fun <T> executeWithSession(token: String, function: (Session) -> Mono<T>): Mono<T> {
+    fun <T> monoUsingSession(token: String, function: (Session) -> Mono<T>): Mono<T> {
         val sessionMono = sessionService.getSession(token)
         return sessionMono.flatMap { function.invoke(it) }
+    }
+
+    fun <T> fluxUsingSession(token: String, function: (Session) -> Flux<T>): Flux<T> {
+        val sessionMono = sessionService.getSession(token)
+        return sessionMono.toFlux().flatMap { function.invoke(it) }
     }
 
 }
