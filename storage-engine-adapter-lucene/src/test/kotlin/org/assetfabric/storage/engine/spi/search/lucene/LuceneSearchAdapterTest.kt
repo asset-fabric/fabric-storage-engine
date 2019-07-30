@@ -23,8 +23,10 @@ import org.assetfabric.storage.ListType
 import org.assetfabric.storage.Path
 import org.assetfabric.storage.RevisionNumber
 import org.assetfabric.storage.Session
+import org.assetfabric.storage.State
 import org.assetfabric.storage.TypedList
 import org.assetfabric.storage.spi.search.SearchAdapter
+import org.assetfabric.storage.spi.search.SearchEntry
 import org.assetfabric.storage.spi.search.lucene.LuceneSearchAdapter
 import org.assetfabric.storage.spi.search.support.AllTextQuery
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -41,6 +43,7 @@ import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.context.support.AnnotationConfigContextLoader
+import reactor.core.publisher.Flux
 import java.util.Date
 
 @ExtendWith(SpringExtension::class)
@@ -73,7 +76,7 @@ class LuceneSearchAdapterTest {
     @DisplayName("should be able to retrieve a node path from a search index using all applicable fields")
     fun testRetrieveDocument() {
 
-        searchAdapter.addSearchEntry(Path("/node1"), RevisionNumber(1), mapOf(
+        searchAdapter.addSearchEntry(SearchEntry(Path("/node1"), RevisionNumber(1), State.NORMAL, mapOf(
                 "stringProp" to "test",
                 "intProp" to 3,
                 "booleanProp" to true,
@@ -84,7 +87,7 @@ class LuceneSearchAdapterTest {
                 "booleanListProp" to TypedList(ListType.BOOLEAN, listOf(true, false)),
                 "longListProp" to TypedList(ListType.LONG, listOf(1L, 10L, 20L)),
                 "dateListProp" to TypedList(ListType.DATE, listOf(Date(), Date()))
-        ), null).block()
+        ), null)).block()
 
 
         `when`(session.revision()).thenReturn(RevisionNumber(2))
@@ -103,8 +106,8 @@ class LuceneSearchAdapterTest {
     @Test
     @DisplayName("should be able to retrieve a matching node path from a prior revision")
     fun testRetrievePriorRevisionDoc() {
-        searchAdapter.addSearchEntry(Path("/node1"), RevisionNumber(1), mapOf("stringProp" to "test"), null).block()
-        searchAdapter.addSearchEntry(Path("/node1"), RevisionNumber(2), mapOf("stringProp" to "stable"), null).block()
+        searchAdapter.addSearchEntry(SearchEntry(Path("/node1"), RevisionNumber(1), State.NORMAL, mapOf("stringProp" to "test"), null)).block()
+        searchAdapter.addSearchEntry(SearchEntry(Path("/node1"), RevisionNumber(2), State.NORMAL, mapOf("stringProp" to "stable"), null)).block()
 
         `when`(session.revision()).thenReturn(RevisionNumber(1))
         val paths = searchAdapter.search(session, AllTextQuery("test"), 0, 5).collectList().block()!!
@@ -114,8 +117,8 @@ class LuceneSearchAdapterTest {
     @Test
     @DisplayName("should not retrieve matching node paths from a future revision")
     fun testRetrieveFutureRevision() {
-        searchAdapter.addSearchEntry(Path("/node1"), RevisionNumber(1), mapOf("stringProp" to "test"), null).block()
-        searchAdapter.addSearchEntry(Path("/node1"), RevisionNumber(2), mapOf("stringProp" to "stable"), null).block()
+        searchAdapter.addSearchEntry(SearchEntry(Path("/node1"), RevisionNumber(1), State.NORMAL, mapOf("stringProp" to "test"), null)).block()
+        searchAdapter.addSearchEntry(SearchEntry(Path("/node1"), RevisionNumber(2), State.NORMAL, mapOf("stringProp" to "stable"), null)).block()
 
         `when`(session.revision()).thenReturn(RevisionNumber(1))
         val paths = searchAdapter.search(session, AllTextQuery("stable"), 0, 5).collectList().block()!!
@@ -125,12 +128,12 @@ class LuceneSearchAdapterTest {
     @Test
     @DisplayName("should not retrieve matching node paths when they are matched by later, blocking changes")
     fun testRetrieveBlockingRevision() {
-        searchAdapter.addSearchEntry(Path("/node1"), RevisionNumber(1), mapOf("stringProp" to "test"), null).block()
+        searchAdapter.addSearchEntry(SearchEntry(Path("/node1"), RevisionNumber(1), State.NORMAL, mapOf("stringProp" to "test"), null)).block()
 
         // this demonstrates how changes to node properties MUST be filed with the adapter.
         // new values must be given in the first set of properties, and removed or altered properties must be given in the second set of properties.
 
-        searchAdapter.addSearchEntry(Path("/node1"), RevisionNumber(2), mapOf("stringProp" to "stable"), mapOf("stringProp" to "test")).block()
+        searchAdapter.addSearchEntry(SearchEntry(Path("/node1"), RevisionNumber(2), State.NORMAL, mapOf("stringProp" to "stable"), mapOf("stringProp" to "test"))).block()
 
         `when`(session.revision()).thenReturn(RevisionNumber(2))
 
@@ -141,6 +144,19 @@ class LuceneSearchAdapterTest {
         assertEquals(0, paths.size, "Path count mismatch")
     }
 
+    @Test
+    @DisplayName("should be able to write multiple search entries at once")
+    fun testAddMultipleEntries() {
+        val node1 = SearchEntry(Path("/node1"), RevisionNumber(1), State.NORMAL, mapOf("stringProp" to "test"), null)
+        val node2 = SearchEntry(Path("/node2"), RevisionNumber(1), State.NORMAL, mapOf("stringProp" to "test"), null)
+        val nodeFlux = Flux.just(node1, node2)
 
+        searchAdapter.addSearchEntries(nodeFlux).block()
+
+        `when`(session.revision()).thenReturn(RevisionNumber(1))
+        val paths = searchAdapter.search(session, AllTextQuery("test"), 0, 5).collectList().block()!!
+        assertEquals(2, paths.size, "Path count mismatch")
+
+    }
 
 }

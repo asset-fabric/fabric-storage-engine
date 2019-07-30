@@ -50,6 +50,16 @@ interface MetadataManagerService {
     fun repositoryRevision(): Mono<RevisionNumber>
 
     /**
+     * Creates a new, uncommitted node representation in the metadata store's working set for the given session.
+     * @param session the session being used to create the node
+     * @param parentPath the path of the parent node of the new node
+     * @param name the name of the new node
+     * @param properties the properties of the new node
+     * @return a representation of the new, uncommitted node
+     */
+    fun createNode(session: Session, parentPath: Path, name: String, nodeType: NodeType, properties: MutableMap<String, Any>): Mono<out WorkingAreaNodeRepresentation>
+
+    /**
      * Returns either a session's working copy of a node representation, or the
      * representation of that node in the current data partition if the session has
      * no working copy of it, if either exist.
@@ -60,6 +70,12 @@ interface MetadataManagerService {
     fun nodeRepresentation(session: Session, path: Path): Mono<NodeRepresentation>
 
     /**
+     * Returns the node representations visible to the given session that match
+     * the given search term.
+     */
+    fun search(session: Session, searchTerm: String): Flux<NodeRepresentation>
+
+    /**
      * Returns the children of the node at the given path, either from the active data partition
      * or from the working area.
      * @param session the session being used to retrieve the child nodes
@@ -68,14 +84,9 @@ interface MetadataManagerService {
     fun childNodeRepresentations(session: Session, path: Path): Flux<NodeRepresentation>
 
     /**
-     * Creates a new, uncommitted node representation in the metadata store's working set for the given session.
-     * @param session the session being used to create the node
-     * @param parentPath the path of the parent node of the new node
-     * @param name the name of the new node
-     * @param properties the properties of the new node
-     * @return a representation of the new, uncommitted node
+     * Returns the node representations in the working set and committed set that contain [NodeReference]s to the given node.
      */
-    fun createNode(session: Session, parentPath: Path, name: String, nodeType: NodeType, properties: MutableMap<String, Any>): Mono<out WorkingAreaNodeRepresentation>
+    fun referringNodes(session: Session, path: Path): Flux<NodeRepresentation>
 
     /**
      * Updates the node at the given path with the specified properties.
@@ -87,11 +98,6 @@ interface MetadataManagerService {
      *
      */
     fun updateNode(session: Session, path: Path, properties: MutableMap<String, Any>, state: State): Mono<out WorkingAreaNodeRepresentation>
-
-    /**
-     * Returns the node representations in the working set and committed set that contain [NodeReference]s to the given node.
-     */
-    fun referringNodes(session: Session, path: Path): Flux<NodeRepresentation>
 
     /**
      * Deletes the node at the given path using the given session.

@@ -53,6 +53,10 @@ interface NodeController {
     @GetMapping("/children", produces = ["application/stream+json"])
     fun retrieveNodeChildren(@ApiParam("a valid session token") @CookieValue(API_TOKEN) token: String, @RequestParam("path") path: String): Mono<ResponseEntity<Flux<NodeRepresentation>>>
 
+    @ApiOperation("Retrieves the nodes that match the given search criteria")
+    @GetMapping("/search", produces = ["application/stream+json"])
+    fun searchForNodes(@ApiParam("a valid session token") @CookieValue(API_TOKEN) token: String, @RequestParam("term") term: String): Mono<ResponseEntity<Flux<NodeRepresentation>>>
+
     @PutMapping(consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun updateNode(@CookieValue(API_TOKEN) token: String, @RequestParam("path") path: String, @RequestBody request: Flux<Part>): Mono<ResponseEntity<NodeRepresentation>>
 

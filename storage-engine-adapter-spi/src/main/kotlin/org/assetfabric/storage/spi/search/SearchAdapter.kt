@@ -18,7 +18,6 @@
 package org.assetfabric.storage.spi.search
 
 import org.assetfabric.storage.Path
-import org.assetfabric.storage.RevisionNumber
 import org.assetfabric.storage.Session
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -30,12 +29,14 @@ interface SearchAdapter {
 
     /**
      * Adds a search entry for a committed node.
-     * @param path the path of the node
-     * @param revision the revision of the node
-     * @param currentProperties the current properties of the node
-     * @param removedProperties the properties that were replaced or removed as part of the creation of this revision
+     * @param entry the entry to add to the search index
      */
-    fun addSearchEntry(path: Path, revision: RevisionNumber, currentProperties: Map<String, Any>, removedProperties: Map<String, Any>?): Mono<Void>
+    fun addSearchEntry(entry: SearchEntry): Mono<Void>
+
+    /**
+     * Adds search entries for several committed nodes.
+     */
+    fun addSearchEntries(entries: Flux<SearchEntry>): Mono<Void>
 
     /**
      * Adds a search entry for a working area node.

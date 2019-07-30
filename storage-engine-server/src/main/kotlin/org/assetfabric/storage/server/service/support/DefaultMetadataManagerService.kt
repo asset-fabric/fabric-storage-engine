@@ -46,6 +46,8 @@ import org.assetfabric.storage.spi.metadata.CommittedNodeIndexPartitionAdapter
 import org.assetfabric.storage.spi.metadata.DataPartitionAdapter
 import org.assetfabric.storage.spi.metadata.WorkingAreaNodeIndexPartitionAdapter
 import org.assetfabric.storage.spi.metadata.WorkingAreaPartitionAdapter
+import org.assetfabric.storage.spi.search.SearchAdapter
+import org.assetfabric.storage.spi.search.support.AllTextQuery
 import org.assetfabric.storage.spi.support.DefaultNodeContentRepresentation
 import org.assetfabric.storage.spi.support.DefaultWorkingAreaInverseNodeReferenceRepresentation
 import org.assetfabric.storage.spi.support.DefaultWorkingAreaNodeRepresentation
@@ -82,6 +84,9 @@ class DefaultMetadataManagerService : MetadataManagerService {
 
     @Autowired
     private lateinit var binaryManager: BinaryManagerService
+
+    @Autowired
+    private lateinit var searchAdapter: SearchAdapter
 
     @PostConstruct
     private fun init() {
@@ -270,6 +275,12 @@ class DefaultMetadataManagerService : MetadataManagerService {
 
         return listFlux.flatMap { inverseNodeReference ->
             nodeRepresentation(session, inverseNodeReference.referringNodePath())
+        }
+    }
+
+    override fun search(session: Session, searchTerm: String): Flux<NodeRepresentation> {
+        return searchAdapter.search(session, AllTextQuery(searchTerm), 0, 100).flatMap { path ->
+            nodeRepresentation(session, path)
         }
     }
 

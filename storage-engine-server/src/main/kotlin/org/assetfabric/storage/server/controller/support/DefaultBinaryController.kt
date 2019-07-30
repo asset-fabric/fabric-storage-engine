@@ -45,7 +45,7 @@ class DefaultBinaryController: BinaryController {
             false -> "/$path"
         }
         log.debug("Returning binary for path $realPath")
-        return sessionExecutor.executeWithSession(token) {
+        return sessionExecutor.monoUsingSession(token) {
             binaryManager.getInputStreamForFile(realPath).map { stream ->
                 val res = InputStreamResource(stream)
                 ResponseEntity.ok(res)

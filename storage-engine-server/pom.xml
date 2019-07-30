@@ -63,6 +63,12 @@
             <version>${project.parent.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.assetfabric</groupId>
+            <artifactId>storage-engine-adapter-lucene</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+
         <!-- Kotlin -->
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>

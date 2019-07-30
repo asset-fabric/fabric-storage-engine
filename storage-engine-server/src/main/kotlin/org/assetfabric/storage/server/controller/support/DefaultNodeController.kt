@@ -56,7 +56,7 @@ class DefaultNodeController: NodeController {
     private lateinit var nodeMapper: NodePropertyRepresentationMappingService
 
     override fun createNode(token: String, @RequestParam("path") path: String, @RequestBody request: Flux<Part>): Mono<ResponseEntity<NodeRepresentation>> {
-        return sessionExecutor.executeWithSession(token) { session ->
+        return sessionExecutor.monoUsingSession(token) { session ->
 
             val nodePath = Path(when (path.startsWith("/")) {
                 true -> path
@@ -78,36 +78,13 @@ class DefaultNodeController: NodeController {
         }
     }
 
-    override fun updateNode(token: String, @RequestParam("path") path: String, @RequestBody request: Flux<Part>): Mono<ResponseEntity<NodeRepresentation>> {
-        return sessionExecutor.executeWithSession(token) { session ->
-
-            val nodePath = Path(when (path.startsWith("/")) {
-                true -> path
-                false -> "/$path"
-            })
-            log.debug("Updating node at path $nodePath")
-
-            val updateCommand = context.getBean(RestNodeUpdateCommand::class.java, session, nodePath, request)
-            updateCommand.execute().map { repr ->
-                ResponseEntity.ok(repr)
-            }.onErrorResume { error ->
-                log.error("Error updating node $nodePath", error)
-                when(error) {
-                    is NodeNotFoundException -> Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).build<NodeRepresentation>())
-                    is NodeModificationException -> Mono.just(ResponseEntity.status(HttpStatus.CONFLICT).build<NodeRepresentation>())
-                    else -> Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build<NodeRepresentation>())
-                }
-            }
-        }
-    }
-
     override fun retrieveNode(token: String, @RequestParam("path") path: String): Mono<ResponseEntity<NodeRepresentation>> {
         val nodePath = when (path.startsWith("/")) {
             true -> path
             false -> "/$path"
         }
 
-        val nodeMono: Mono<Node> = sessionExecutor.executeWithSession(token) { session -> session.node(nodePath) }
+        val nodeMono: Mono<Node> = sessionExecutor.monoUsingSession(token) { session -> session.node(nodePath) }
         return nodeMono.map { node ->
             when (node.state()) {
                 State.NORMAL -> {
@@ -130,7 +107,7 @@ class DefaultNodeController: NodeController {
             false -> "/$path"
         }
 
-        val nodeMono: Mono<Node> = sessionExecutor.executeWithSession(token) { session -> session.node(nodePath) }
+        val nodeMono: Mono<Node> = sessionExecutor.monoUsingSession(token) { session -> session.node(nodePath) }
         return nodeMono.flatMap { node ->
             val representationFlux: Flux<NodeRepresentation> = node.children().map { child ->
                 val retNode = NodeRepresentation()
@@ -144,8 +121,45 @@ class DefaultNodeController: NodeController {
         }.switchIfEmpty(Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).build()))
     }
 
+    override fun searchForNodes(token: String, term: String): Mono<ResponseEntity<Flux<NodeRepresentation>>> {
+        val nodeFlux: Flux<Node> = sessionExecutor.fluxUsingSession(token) { session -> session.search(term) }
+        val reprFlux: Flux<NodeRepresentation> = nodeFlux.map { node ->
+            val retNode = NodeRepresentation()
+            retNode.setNodeType(node.nodeType().toString())
+            retNode.setName(node.name())
+            retNode.setPath(node.path().toString())
+            retNode.setProperties(nodeMapper.getExternalPropertyRepresentation(node.properties()))
+            retNode
+        }
+        return Mono.just(ResponseEntity.ok(reprFlux))
+                .switchIfEmpty(Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).build()))
+    }
+
+    override fun updateNode(token: String, @RequestParam("path") path: String, @RequestBody request: Flux<Part>): Mono<ResponseEntity<NodeRepresentation>> {
+        return sessionExecutor.monoUsingSession(token) { session ->
+
+            val nodePath = Path(when (path.startsWith("/")) {
+                true -> path
+                false -> "/$path"
+            })
+            log.debug("Updating node at path $nodePath")
+
+            val updateCommand = context.getBean(RestNodeUpdateCommand::class.java, session, nodePath, request)
+            updateCommand.execute().map { repr ->
+                ResponseEntity.ok(repr)
+            }.onErrorResume { error ->
+                log.error("Error updating node $nodePath", error)
+                when(error) {
+                    is NodeNotFoundException -> Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).build<NodeRepresentation>())
+                    is NodeModificationException -> Mono.just(ResponseEntity.status(HttpStatus.CONFLICT).build<NodeRepresentation>())
+                    else -> Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build<NodeRepresentation>())
+                }
+            }
+        }
+    }
+
     override fun deleteNode(token: String, path: String): Mono<ResponseEntity<Void>> {
-        return sessionExecutor.executeWithSession(token) { session ->
+        return sessionExecutor.monoUsingSession(token) { session ->
             val deleteCommand = context.getBean(NodeDeleteCommand::class.java, session, Path(path))
             deleteCommand.execute()
         }.then(Mono.just(ResponseEntity.ok().build()))

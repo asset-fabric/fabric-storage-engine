@@ -44,7 +44,7 @@ class DefaultNodeContentRepresentation(private val nodeType: NodeType, private v
 
     override fun nodeType(): NodeType = nodeType
 
-    override fun properties(): MutableMap<String, Any> = properties
+    override fun properties(): MutableMap<String, Any> = currentProperties
 
     override fun setProperties(props: MutableMap<String, Any>) {
         currentProperties = props
