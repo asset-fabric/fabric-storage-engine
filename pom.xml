@@ -29,10 +29,11 @@
     <modules>
         <module>storage-engine-api</module>
         <module>storage-engine-core</module>
+        <module>storage-engine-services</module>
+        <module>storage-engine-server</module>
         <module>storage-engine-adapter-spi</module>
         <module>storage-engine-adapter-mongo</module>
         <module>storage-engine-adapter-s3</module>
-        <module>storage-engine-server</module>
         <module>storage-engine-acceptance-test</module>
         <module>storage-engine-adapter-block</module>
         <module>storage-engine-adapter-lucene</module>
@@ -206,7 +207,6 @@
                 </executions>
             </plugin>
 
-            <!--
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
@@ -220,8 +220,6 @@
                     </execution>
                 </executions>
             </plugin>
-            -->
-
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -292,9 +290,9 @@
             </activation>
             <properties>
                 <!-- Optional URL to server. Default value is http://localhost:9000 -->
-                <sonar.host.url>
-                    http://localhost:11900
-                </sonar.host.url>
+                <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+                <sonar.organization>asset-fabric</sonar.organization>
+                <sonar.login>${SONARCLOUD_API_KEY}</sonar.login>
             </properties>
         </profile>
     </profiles>

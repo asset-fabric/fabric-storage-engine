@@ -31,8 +31,6 @@ import org.assetfabric.storage.spi.metadata.CatalogPartitionAdapter
 import org.assetfabric.storage.spi.metadata.CommittedNodeIndexPartitionAdapter
 import org.assetfabric.storage.spi.metadata.DataPartitionAdapter
 import org.assetfabric.storage.spi.metadata.JournalPartitionAdapter
-import org.assetfabric.storage.spi.metadata.WorkingAreaNodeIndexPartitionAdapter
-import org.assetfabric.storage.spi.metadata.WorkingAreaPartitionAdapter
 import org.assetfabric.storage.spi.search.SearchAdapter
 import org.assetfabric.storage.spi.search.SearchEntry
 import org.assetfabric.storage.spi.support.DefaultCommittedInverseNodeReferenceRepresentation
@@ -42,7 +40,6 @@ import org.springframework.context.annotation.Scope
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.core.publisher.switchIfEmpty
 import java.time.Duration
 
 /**
