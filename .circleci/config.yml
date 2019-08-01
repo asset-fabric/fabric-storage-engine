@@ -36,7 +36,7 @@ jobs:
           key: v1-dependencies-{{ checksum "pom.xml" }}
 
       # run tests!
-      - run: mvn clean deploy dependency:go-offline
+      - run: mvn clean deploy sonar:sonar dependency:go-offline
 
       - store_test_results:
           path: storage-engine-acceptance-test/target/surefire-reports
