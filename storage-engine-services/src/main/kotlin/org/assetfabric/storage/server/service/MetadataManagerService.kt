@@ -19,6 +19,7 @@ package org.assetfabric.storage.server.service
 
 import org.assetfabric.storage.NodeType
 import org.assetfabric.storage.Path
+import org.assetfabric.storage.Query
 import org.assetfabric.storage.RevisionNumber
 import org.assetfabric.storage.Session
 import org.assetfabric.storage.State
@@ -70,10 +71,17 @@ interface MetadataManagerService {
     fun nodeRepresentation(session: Session, path: Path): Mono<NodeRepresentation>
 
     /**
+     * TODO: maybe kill this method in favor of search(query)
      * Returns the node representations visible to the given session that match
      * the given search term.
      */
     fun search(session: Session, searchTerm: String): Flux<NodeRepresentation>
+
+    /**
+     * Returns the node representations visible to the given session that match
+     * this given query.
+     */
+    fun search(session: Session, query: Query): Flux<NodeRepresentation>
 
     /**
      * Returns the children of the node at the given path, either from the active data partition
@@ -103,6 +111,11 @@ interface MetadataManagerService {
      * Deletes the node at the given path using the given session.
      */
     fun deleteNode(session: Session, path: Path): Mono<Void>
+
+    /**
+     * Removes any working changes stored for the given session.
+     */
+    fun destroySessionChanges(session: Session): Mono<Void>
 
     /**
      * Commits the given session, saving its working changes to permanent storage.

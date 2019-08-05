@@ -15,7 +15,7 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.assetfabric.storage.spi.search
+package org.assetfabric.storage
 
 interface Query {
 }

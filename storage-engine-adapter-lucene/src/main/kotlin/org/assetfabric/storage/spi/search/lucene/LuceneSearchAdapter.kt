@@ -22,27 +22,31 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.document.Document
 import org.apache.lucene.document.Field
 import org.apache.lucene.document.SortedDocValuesField
+import org.apache.lucene.document.StringField
 import org.apache.lucene.document.TextField
 import org.apache.lucene.index.DirectoryReader
 import org.apache.lucene.index.IndexWriter
 import org.apache.lucene.index.IndexWriterConfig
+import org.apache.lucene.index.Term
 import org.apache.lucene.queryparser.classic.QueryParser
 import org.apache.lucene.search.BooleanClause
 import org.apache.lucene.search.BooleanQuery
 import org.apache.lucene.search.IndexSearcher
 import org.apache.lucene.search.Sort
 import org.apache.lucene.search.SortField
+import org.apache.lucene.search.TermQuery
 import org.apache.lucene.search.grouping.GroupingSearch
 import org.apache.lucene.store.FSDirectory
 import org.apache.lucene.util.BytesRef
 import org.assetfabric.storage.ListType
 import org.assetfabric.storage.Path
+import org.assetfabric.storage.Query
 import org.assetfabric.storage.Session
 import org.assetfabric.storage.TypedList
-import org.assetfabric.storage.spi.search.Query
 import org.assetfabric.storage.spi.search.SearchAdapter
 import org.assetfabric.storage.spi.search.SearchEntry
 import org.assetfabric.storage.spi.search.support.AllTextQuery
+import org.assetfabric.storage.spi.search.support.NodeTypeQuery
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
@@ -87,6 +91,7 @@ class LuceneSearchAdapter : SearchAdapter {
         return Mono.fromCallable {
 
             val doc = Document()
+            doc.add(StringField("nodeType", entry.nodeType.type, Field.Store.YES))
             doc.add(SortedDocValuesField("path", BytesRef(entry.path.toString())))
             doc.add(TextField("path", entry.path.toString(), Field.Store.YES))
             doc.add(SortedDocValuesField("revision", BytesRef(entry.revision.toString())))
@@ -163,8 +168,7 @@ class LuceneSearchAdapter : SearchAdapter {
         return Flux.fromStream {
             val parser = QueryParser("all", analyzer)
             val revisionQuery = parser.parse("revision: [* TO ${session.revision()}]")
-            val currentQuery = parser.parse("all:${(query as AllTextQuery).text}")
-            val oldQuery = parser.parse("old_all:${(query).text}")
+            val (currentQuery, oldQuery) = parseQuery(query)
             val luceneQuery = BooleanQuery.Builder()
                     .add(revisionQuery, BooleanClause.Occur.MUST)
                     .add(currentQuery, BooleanClause.Occur.SHOULD)
@@ -173,10 +177,16 @@ class LuceneSearchAdapter : SearchAdapter {
             val reader = DirectoryReader.open(indexDir)
             val searcher = IndexSearcher(reader)
 
+            // execute the search, grouping by path
             val groupSearch = GroupingSearch("path")
+
+            // within each group, sort by most recent revision first and only keep the latest
             val groupSort = Sort(SortField("revision", SortField.Type.STRING, true))
             groupSearch.setSortWithinGroup(groupSort)
             groupSearch.setGroupDocsLimit(1)
+
+            // sort the results by path, ascending
+            groupSearch.setGroupSort(Sort(SortField("path", SortField.Type.STRING)))
 
             val topGroups = groupSearch.search<BytesRef>(searcher, luceneQuery, start, count)
             val nodes = topGroups.groups.map { groupDocs ->
@@ -191,7 +201,7 @@ class LuceneSearchAdapter : SearchAdapter {
             }
 
             nodes.forEach { path ->
-                println("Got path $path")
+                log.debug("Got path $path")
             }
 
             reader.close()
@@ -203,5 +213,25 @@ class LuceneSearchAdapter : SearchAdapter {
     fun reset() {
         writer.deleteAll()
         writer.commit()
+    }
+
+    private fun parseQuery(query: Query): Pair<org.apache.lucene.search.Query, org.apache.lucene.search.Query> {
+        return when (query) {
+            is AllTextQuery -> parseAllTextQuery(query)
+            is NodeTypeQuery -> parseNodeTypeQuery(query)
+            else -> throw RuntimeException("not implemented for type $query")
+        }
+    }
+
+    private fun parseAllTextQuery(query: AllTextQuery): Pair<org.apache.lucene.search.Query, org.apache.lucene.search.Query> {
+        val parser = QueryParser("all", analyzer)
+        val currentQuery = parser.parse("all:${query.text}")
+        val oldQuery = parser.parse("old_all:${(query).text}")
+        return Pair(currentQuery, oldQuery)
+    }
+
+    private fun parseNodeTypeQuery(query: NodeTypeQuery): Pair<org.apache.lucene.search.Query, org.apache.lucene.search.Query> {
+        val tq = TermQuery(Term("nodeType", query.nodeType.toString()))
+        return Pair(tq, tq)
     }
 }

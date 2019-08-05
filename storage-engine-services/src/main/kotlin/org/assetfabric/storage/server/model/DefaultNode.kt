@@ -18,6 +18,7 @@
 package org.assetfabric.storage.server.model
 
 import org.assetfabric.storage.Node
+import org.assetfabric.storage.NodeReference
 import org.assetfabric.storage.NodeType
 import org.assetfabric.storage.Path
 import org.assetfabric.storage.RevisionNumber
@@ -86,6 +87,14 @@ class DefaultNode(val session: Session, val nodeRepresentation: NodeRepresentati
 
     override fun stringProperty(name: String): String? {
         return nodeRepresentation.properties()[name] as String?
+    }
+
+    override fun nodeProperty(name: String): Mono<Node> {
+        val nodeProp = nodeRepresentation.properties()[name] as NodeReference?
+        return when(nodeProp) {
+            null -> Mono.empty()
+            else -> session.node(nodeProp.path)
+        }
     }
 
     override fun referringNodes(): Flux<Node> {

@@ -69,7 +69,7 @@ class RestLoginLogoutTest: RestAbstractTest() {
     @Test
     @DisplayName("should unset a session token for a valid logout")
     fun testLogout() {
-        val creds = Credentials("michacod", "password")
+        val creds = Credentials("test", "test")
         val response = RestAssured.given().contentType(ContentType.JSON).body(creds).`when`().post(sessionUrl).andReturn()
         assertEquals(200, response.statusCode, "Wrong HTTP status code")
         val cookie = response.header("Set-Cookie")

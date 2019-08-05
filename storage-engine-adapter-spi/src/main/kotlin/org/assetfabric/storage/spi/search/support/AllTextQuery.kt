@@ -17,6 +17,10 @@
 
 package org.assetfabric.storage.spi.search.support
 
-import org.assetfabric.storage.spi.search.Query
+import org.assetfabric.storage.Query
 
+/**
+ * A query for a text value in any property that is included in the
+ * "all" search index.
+ */
 class AllTextQuery(val text: String): Query

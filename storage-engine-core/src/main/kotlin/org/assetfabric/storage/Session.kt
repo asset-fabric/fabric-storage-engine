@@ -53,9 +53,15 @@ interface Session {
     fun node(path: String): Mono<Node>
 
     /**
+     * TODO: remove this in favor of search(query)
      * Returns the nodes that match the given search term.
      */
     fun search(term: String): Flux<Node>
+
+    /**
+     * Returns the nodes that match the given query.
+     */
+    fun search(query: Query): Flux<Node>
 
     /**
      * Commits this session, saving working changes to permanent storage.
@@ -65,6 +71,6 @@ interface Session {
     /**
      * Closes this session, discarding any unsaved changes.
      */
-    fun close()
+    fun close(): Mono<Void>
 
 }

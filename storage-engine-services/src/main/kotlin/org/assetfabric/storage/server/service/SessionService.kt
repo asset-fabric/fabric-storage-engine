@@ -53,6 +53,6 @@ interface SessionService {
      * Closes a session
      * @param session the session to close
      */
-    fun closeSession(session: Session)
+    fun closeSession(session: Session): Mono<Void>
 
 }

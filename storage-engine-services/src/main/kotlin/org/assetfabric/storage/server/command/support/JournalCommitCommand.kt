@@ -113,6 +113,7 @@ class JournalCommitCommand(val session: Session): ReturningCommand<RevisionNumbe
         log.debug("Creating search entry for ${journalEntry.path()}")
         val path = journalEntry.path()
         val revision = journalEntry.revision()
+        val type = journalEntry.nodeType()
         val currentProps = mutableMapOf<String, Any>()
         val priorProps = mutableMapOf<String, Any>()
         currentProps.putAll(journalEntry.addedProperties())
@@ -122,7 +123,7 @@ class JournalCommitCommand(val session: Session): ReturningCommand<RevisionNumbe
             currentProps[entry.key] = newVal
             currentProps[entry.key] = oldVal
         }
-        return SearchEntry(path, revision, State.NORMAL, currentProps, priorProps)
+        return SearchEntry(path, type, revision, State.NORMAL, currentProps, priorProps)
     }
 
 }

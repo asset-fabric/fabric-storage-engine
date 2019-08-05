@@ -28,6 +28,7 @@ import org.assetfabric.storage.NodeNotFoundException
 import org.assetfabric.storage.NodeReference
 import org.assetfabric.storage.NodeType
 import org.assetfabric.storage.Path
+import org.assetfabric.storage.Query
 import org.assetfabric.storage.RevisionNumber
 import org.assetfabric.storage.Session
 import org.assetfabric.storage.State
@@ -56,7 +57,6 @@ import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import java.util.function.BiFunction
 import javax.annotation.PostConstruct
 
 @Service
@@ -124,7 +124,7 @@ class DefaultMetadataManagerService : MetadataManagerService {
                 // map any inputstream properties to binary references
                 val mappedProperties = mapInputStreamsToBinaryReferences(properties)
 
-                val repr = DefaultWorkingAreaNodeRepresentation(session.getSessionID(), path, nodeType, null, DefaultNodeContentRepresentation(mappedProperties))
+                val repr = DefaultWorkingAreaNodeRepresentation(session.getSessionID(), path, nodeType, null, DefaultNodeContentRepresentation(nodeType, mappedProperties, State.NORMAL))
 
                 val createOp = workingAreaPartitionAdapter.createNodeRepresentation(repr)
 
@@ -218,10 +218,8 @@ class DefaultMetadataManagerService : MetadataManagerService {
         val workingRepMono: Mono<WorkingAreaNodeRepresentation> = workingAreaPartitionAdapter.nodeRepresentation(session.getSessionID(), path)
         return workingRepMono
                 .map { it.effectiveNodeRepresentation() }
-                .switchIfEmpty( Mono.defer {
-                        dataPartitionAdapter.nodeRepresentation(session.revision(), path)
-                    }
-                ).filter { repr -> repr.state() == State.NORMAL }
+                .switchIfEmpty(dataPartitionAdapter.nodeRepresentation(session.revision(), path))
+                .filter { repr -> repr.state() == State.NORMAL }
     }
 
     override fun childNodeRepresentations(session: Session, path: Path): Flux<NodeRepresentation> {
@@ -273,13 +271,20 @@ class DefaultMetadataManagerService : MetadataManagerService {
     override fun referringNodes(session: Session, path: Path): Flux<NodeRepresentation> {
         val listFlux = inverseReferences(session, path)
 
-        return listFlux.flatMap { inverseNodeReference ->
+        return listFlux.flatMapSequential { inverseNodeReference ->
             nodeRepresentation(session, inverseNodeReference.referringNodePath())
         }
     }
 
     override fun search(session: Session, searchTerm: String): Flux<NodeRepresentation> {
-        return searchAdapter.search(session, AllTextQuery(searchTerm), 0, 100).flatMap { path ->
+        return searchAdapter.search(session, AllTextQuery(searchTerm), 0, 100).flatMapSequential { path ->
+            nodeRepresentation(session, path)
+        }
+    }
+
+    override fun search(session: Session, query: Query): Flux<NodeRepresentation> {
+        return searchAdapter.search(session, query, 0, 100).flatMapSequential { path ->
+            log.debug("Mapping search result path $path to node representation")
             nodeRepresentation(session, path)
         }
     }
@@ -296,6 +301,13 @@ class DefaultMetadataManagerService : MetadataManagerService {
             (session as DefaultSession).setRevision(revisionNumber)
             workingAreaRemoveMono.then(workingAreaIndexMono)
         }
+    }
+
+    override fun destroySessionChanges(session: Session): Mono<Void> {
+        log.debug("Removing working changes for session ${session.getSessionID()}")
+        val workingAreaRemoveMono = Mono.defer { workingAreaPartitionAdapter.deleteWorkingAreaRepresentations(session.getSessionID()) }
+        val workingAreaIndexMono = Mono.defer { workingAreaNodeIndexPartitionAdapter.deleteNodeReferences(session.getSessionID()) }
+        return workingAreaRemoveMono.then(workingAreaIndexMono)
     }
 
     override fun deleteNode(session: Session, path: Path): Mono<Void> {
