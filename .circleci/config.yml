@@ -32,7 +32,7 @@ jobs:
             - v1-dependencies-
 
       # run tests!
-      - run: mvn dependency:go-offline clean deploy sonar:sonar
+      - run: mvn dependency:go-offline clean deploy
 
       - save_cache:
           paths:
