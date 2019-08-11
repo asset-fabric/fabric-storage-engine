@@ -41,7 +41,7 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader
 class MongoCatalogPartitionAdapterTest {
 
     @Configuration
-    @Import(MongoCatalogPartitionAdapter::class, MongoTemplateConfiguration::class, EmbeddedMongoClientFactory::class)
+    @Import(MongoCatalogPartitionAdapter::class, MongoTemplateConfiguration::class, MongoClientFactory::class)
     internal class Config
 
     @Autowired

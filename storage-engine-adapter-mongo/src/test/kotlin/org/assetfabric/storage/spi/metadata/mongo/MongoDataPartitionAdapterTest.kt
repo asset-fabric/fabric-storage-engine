@@ -29,6 +29,7 @@ import org.assetfabric.storage.spi.support.DefaultRevisionedNodeRepresentation
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -50,7 +51,7 @@ import reactor.core.publisher.Flux
 class MongoDataPartitionAdapterTest {
 
     @Configuration
-    @Import(MongoDataPartitionAdapter::class, MongoTemplateConfiguration::class, EmbeddedMongoClientFactory::class)
+    @Import(MongoDataPartitionAdapter::class, MongoTemplateConfiguration::class, MongoClientFactory::class)
     internal class Config
 
     private val log = LogManager.getLogger(MongoDataPartitionAdapterTest::class.java)
@@ -65,6 +66,11 @@ class MongoDataPartitionAdapterTest {
                 "nodeRefProp" to NodeReference("/some/node")
         )
         return DefaultRevisionedNodeRepresentation(path, revision, NodeType.UNSTRUCTURED, map, State.NORMAL)
+    }
+
+    @BeforeEach
+    private fun init() {
+        adapter.reset().block()
     }
 
     @Test

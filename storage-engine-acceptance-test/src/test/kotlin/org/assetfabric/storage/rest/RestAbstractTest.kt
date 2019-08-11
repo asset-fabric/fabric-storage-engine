@@ -22,7 +22,6 @@ import io.restassured.response.Response
 import io.restassured.response.ResponseBodyExtractionOptions
 import io.restassured.specification.RequestSpecification
 import org.apache.logging.log4j.LogManager
-import org.assetfabric.storage.MongoSetupExtension
 import org.assetfabric.storage.server.controller.Constants
 import org.assetfabric.storage.server.service.support.DefaultMetadataManagerService
 import org.junit.jupiter.api.Assertions
@@ -33,7 +32,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import java.io.InputStream
 
-@ExtendWith(SpringExtension::class, MongoSetupExtension::class)
+@ExtendWith(SpringExtension::class)
 abstract class RestAbstractTest {
 
     private val log = LogManager.getLogger(RestAbstractTest::class.java)

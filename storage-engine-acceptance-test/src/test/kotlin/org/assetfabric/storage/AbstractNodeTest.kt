@@ -26,7 +26,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import reactor.core.publisher.Mono
 
-@ExtendWith(SpringExtension::class, MongoSetupExtension::class)
+@ExtendWith(SpringExtension::class)
 abstract class AbstractNodeTest {
 
     @Value("\${test.user}")

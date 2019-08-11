@@ -44,7 +44,7 @@ import reactor.core.publisher.Flux
 class MongoWorkingAreaNodeIndexPartitionAdapterTest {
 
     @Configuration
-    @Import(MongoWorkingAreaNodeIndexPartitionAdapter::class, MongoTemplateConfiguration::class, EmbeddedMongoClientFactory::class)
+    @Import(MongoWorkingAreaNodeIndexPartitionAdapter::class, MongoTemplateConfiguration::class, MongoClientFactory::class)
     internal class Config
 
     @Autowired

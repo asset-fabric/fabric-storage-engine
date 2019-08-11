@@ -22,15 +22,11 @@
     <parent>
         <artifactId>storage-engine</artifactId>
         <groupId>org.assetfabric</groupId>
-        <version>1.0.0.1-SNAPSHOT</version>
+        <version>1.0.0.2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>storage-engine-adapter-mongo</artifactId>
-
-    <properties>
-        <flapdoodle.embed.mongo.version>2.2.0</flapdoodle.embed.mongo.version>
-    </properties>
 
     <dependencies>
         <dependency>
@@ -43,13 +39,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-mongodb-reactive</artifactId>
             <version>${spring.boot.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>de.flapdoodle.embed</groupId>
-            <artifactId>de.flapdoodle.embed.mongo</artifactId>
-            <version>${flapdoodle.embed.mongo.version}</version>
-            <scope>test</scope>
         </dependency>
 
     </dependencies>

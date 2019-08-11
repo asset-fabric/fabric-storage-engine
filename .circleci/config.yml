@@ -8,6 +8,7 @@ jobs:
     docker:
       # specify the version you desire here
       - image: circleci/openjdk:8u171-jdk
+      - image: circleci/mongo:latest
 
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
@@ -23,6 +24,9 @@ jobs:
     steps:
       - checkout
 
+      - setup_remote_docker:
+          docker_layer_caching: true
+
       # Download and cache dependencies
       - restore_cache:
           keys:
@@ -30,13 +34,13 @@ jobs:
             # fallback to using the latest cache if no exact match is found
             - v1-dependencies-
 
+      # run tests!
+      - run: mvn dependency:go-offline clean deploy
+
       - save_cache:
           paths:
             - ~/.m2
           key: v1-dependencies-{{ checksum "pom.xml" }}
-
-      # run tests!
-      - run: mvn clean deploy sonar:sonar dependency:go-offline
 
       - store_test_results:
           path: storage-engine-acceptance-test/target/surefire-reports
