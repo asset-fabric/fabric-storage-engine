@@ -35,7 +35,6 @@ import reactor.core.publisher.Flux
 import java.io.ByteArrayInputStream
 import java.util.Date
 
-@ExtendWith(SpringExtension::class)
 @SpringBootTest
 @DisplayName("the fabric storage system")
 class NodeCreateTest: AbstractNodeTest() {

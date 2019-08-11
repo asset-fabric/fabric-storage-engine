@@ -18,12 +18,15 @@
 package org.assetfabric.storage
 
 import org.assetfabric.storage.server.service.SessionService
+import org.assetfabric.storage.server.service.support.DefaultMetadataManagerService
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.test.annotation.DirtiesContext
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import reactor.core.publisher.Mono
 
-@DirtiesContext
+@ExtendWith(SpringExtension::class, MongoSetupExtension::class)
 abstract class AbstractNodeTest {
 
     @Value("\${test.user}")
@@ -35,7 +38,15 @@ abstract class AbstractNodeTest {
     @Autowired
     protected lateinit var sessionService: SessionService
 
+    @Autowired
+    private lateinit var metadataManagerService: DefaultMetadataManagerService
+
     protected fun getSession(): Mono<Session> = sessionService.getSession(Credentials(user, password))
+
+    @BeforeEach
+    private fun reset() {
+        metadataManagerService.reset()
+    }
 
 
 }

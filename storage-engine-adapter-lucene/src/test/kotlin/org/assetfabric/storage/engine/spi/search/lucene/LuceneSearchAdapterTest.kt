@@ -30,7 +30,9 @@ import org.assetfabric.storage.spi.search.SearchAdapter
 import org.assetfabric.storage.spi.search.SearchEntry
 import org.assetfabric.storage.spi.search.lucene.LuceneSearchAdapter
 import org.assetfabric.storage.spi.search.support.AllTextQuery
+import org.assetfabric.storage.spi.search.support.AndQuery
 import org.assetfabric.storage.spi.search.support.NodeTypeQuery
+import org.assetfabric.storage.spi.search.support.OrQuery
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -169,6 +171,48 @@ class LuceneSearchAdapterTest {
         `when`(session.revision()).thenReturn(RevisionNumber(1))
         val paths = searchAdapter.search(session, NodeTypeQuery(NodeType.UNSTRUCTURED), 0, 5).collectList().block()!!
         assertEquals(1, paths.size, "Path count mismatch")
+    }
+
+    @Test
+    @DisplayName("should be able to retrieve a matching node path by all text and node type")
+    fun testRetrieveByAllTextAndNodeType() {
+        searchAdapter.addSearchEntry(SearchEntry(Path("/node1"),  NodeType.UNSTRUCTURED, RevisionNumber(1), State.NORMAL, mapOf("stringProp" to "test"), null)).block()
+        searchAdapter.addSearchEntry(SearchEntry(Path("/node2"),  NodeType("af:other:1"), RevisionNumber(1), State.NORMAL, mapOf("stringProp" to "test"), null)).block()
+        searchAdapter.addSearchEntry(SearchEntry(Path("/node3"),  NodeType("af:other:1"), RevisionNumber(1), State.NORMAL, mapOf("stringProp" to "people"), null)).block()
+
+        `when`(session.revision()).thenReturn(RevisionNumber(1))
+
+        val paths = searchAdapter.search(session, NodeTypeQuery(NodeType.UNSTRUCTURED), 0, 5).collectList().block()!!
+        assertEquals(1, paths.size, "Path count mismatch")
+
+        val paths2 = searchAdapter.search(session, NodeTypeQuery(NodeType("af:other:1")), 0, 5).collectList().block()!!
+        assertEquals(2, paths2.size, "Path count mismatch")
+
+        val paths3 = searchAdapter.search(session, AllTextQuery("test"), 0, 5).collectList().block()!!
+        assertEquals(2, paths3.size, "Path count mismatch")
+
+        val paths4 = searchAdapter.search(session, AndQuery(AllTextQuery("test"), NodeTypeQuery(NodeType("af:other:1"))), 0, 5).collectList().block()!!
+        assertEquals(1, paths4.size, "Path count mismatch")
+
+    }
+
+    @Test
+    @DisplayName("should be able to retrieve a matching node path by all text and multiple node types")
+    fun testRetrieveByAllTextAndOrQuery() {
+        searchAdapter.addSearchEntry(SearchEntry(Path("/node1"),  NodeType.UNSTRUCTURED, RevisionNumber(1), State.NORMAL, mapOf("stringProp" to "test"), null)).block()
+        searchAdapter.addSearchEntry(SearchEntry(Path("/node2"),  NodeType("af:other:1"), RevisionNumber(1), State.NORMAL, mapOf("stringProp" to "test"), null)).block()
+        searchAdapter.addSearchEntry(SearchEntry(Path("/node3"),  NodeType("af:third:1"), RevisionNumber(1), State.NORMAL, mapOf("stringProp" to "test"), null)).block()
+
+        `when`(session.revision()).thenReturn(RevisionNumber(1))
+
+        val textQuery = AllTextQuery("test")
+        val orQuery = OrQuery(NodeTypeQuery(NodeType("af:other:1")), NodeTypeQuery(NodeType.UNSTRUCTURED))
+        val andQuery = AndQuery(textQuery, orQuery)
+
+        val paths = searchAdapter.search(session, andQuery, 0, 5).collectList().block()!!
+        assertEquals(2, paths.size, "Path count mismatch")
+
+
     }
 
 }

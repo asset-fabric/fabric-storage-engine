@@ -46,13 +46,16 @@ import org.assetfabric.storage.TypedList
 import org.assetfabric.storage.spi.search.SearchAdapter
 import org.assetfabric.storage.spi.search.SearchEntry
 import org.assetfabric.storage.spi.search.support.AllTextQuery
+import org.assetfabric.storage.spi.search.support.AndQuery
 import org.assetfabric.storage.spi.search.support.NodeTypeQuery
+import org.assetfabric.storage.spi.search.support.OrQuery
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.io.File
+import java.util.function.BiFunction
 import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
 
@@ -67,8 +70,6 @@ class LuceneSearchAdapter : SearchAdapter {
 
     private lateinit var indexDir: FSDirectory
 
-    private lateinit var writer: IndexWriter
-
     val analyzer = StandardAnalyzer()
 
     @PostConstruct
@@ -76,84 +77,111 @@ class LuceneSearchAdapter : SearchAdapter {
         val indexFile = File(indexDirPath)
         indexFile.mkdirs()
         indexDir = FSDirectory.open(indexFile.toPath())
-        val writerConfig = IndexWriterConfig(analyzer)
-        writer = IndexWriter(indexDir, writerConfig)
         log.debug("Initialized Lucene search adapter at location ${indexFile.absolutePath}")
     }
 
     @PreDestroy
     private fun stop() {
+
+    }
+
+    private fun createWriter(): IndexWriter {
+        log.debug("Creating writer")
+        val writerConfig = IndexWriterConfig(analyzer)
+        return IndexWriter(indexDir, writerConfig)
+    }
+
+    private fun closeWriter(writer: IndexWriter) {
+        log.debug("Closing writer")
         writer.close()
-        log.debug("Closed Lucene index writer")
     }
 
     override fun addSearchEntry(entry: SearchEntry): Mono<Void> {
-        return Mono.fromCallable {
+        return Mono.fromRunnable {
+            val writer = createWriter()
+            addSearchEntry(entry, writer)
+            closeWriter(writer)
+        }
+    }
 
-            val doc = Document()
-            doc.add(StringField("nodeType", entry.nodeType.type, Field.Store.YES))
-            doc.add(SortedDocValuesField("path", BytesRef(entry.path.toString())))
-            doc.add(TextField("path", entry.path.toString(), Field.Store.YES))
-            doc.add(SortedDocValuesField("revision", BytesRef(entry.revision.toString())))
-            doc.add(TextField("revision", entry.revision.toString(), Field.Store.YES))
+    fun addSearchEntry(entry: SearchEntry, writer: IndexWriter) {
+        val doc = Document()
+        doc.add(StringField("nodeType", entry.nodeType.type, Field.Store.YES))
+        doc.add(SortedDocValuesField("path", BytesRef(entry.path.toString())))
+        doc.add(TextField("path", entry.path.toString(), Field.Store.YES))
+        doc.add(SortedDocValuesField("revision", BytesRef(entry.revision.toString())))
+        doc.add(TextField("revision", entry.revision.toString(), Field.Store.YES))
 
-            log.debug("Writing ${entry.path} to search index at revision ${entry.revision}")
+        log.debug("Writing ${entry.path} to search index at revision ${entry.revision}")
 
-            val currentStringBuilder = StringBuilder()
-            val oldStringBuilder = StringBuilder()
+        val currentStringBuilder = StringBuilder()
+        val oldStringBuilder = StringBuilder()
 
-            /**
-             * Returns the appropriate type of Lucene field with which the given property
-             * should be represented. In some cases, the extracted value will be appended
-             * to the supplied StringBuilder for inclusion in "all" searches.
-             */
-            fun getField(key: String, value: Any, builder: StringBuilder): Field? {
-                return when (value) {
-                    is String -> {
-                        builder.append(value)
-                        builder.append(" ")
-                        TextField(key, value, Field.Store.NO)
-                    }
-                    is TypedList -> {
-                        when (value.listType) {
-                            ListType.STRING -> {
-                                val stringText = value.values.joinToString(" ")
-                                builder.append(stringText)
-                                builder.append(" ")
-                                TextField(key, stringText, Field.Store.NO)
-                            }
-                            else -> null
+        /**
+         * Returns the appropriate type of Lucene field with which the given property
+         * should be represented. In some cases, the extracted value will be appended
+         * to the supplied StringBuilder for inclusion in "all" searches.
+         */
+        fun getField(key: String, value: Any, builder: StringBuilder): Field? {
+            return when (value) {
+                is String -> {
+                    builder.append(value)
+                    builder.append(" ")
+                    TextField(key, value, Field.Store.NO)
+                }
+                is TypedList -> {
+                    when (value.listType) {
+                        ListType.STRING -> {
+                            val stringText = value.values.joinToString(" ")
+                            builder.append(stringText)
+                            builder.append(" ")
+                            TextField(key, stringText, Field.Store.NO)
                         }
+                        else -> null
                     }
-                    else -> null
                 }
+                else -> null
             }
+        }
 
-            entry.currentProperties.forEach {
-                val field: Field? = getField(it.key, it.value, currentStringBuilder)
-                if (field != null) {
-                    doc.add(field)
-                }
+        entry.currentProperties.forEach {
+            val field: Field? = getField(it.key, it.value, currentStringBuilder)
+            if (field != null) {
+                doc.add(field)
             }
-            entry.priorProperties?.forEach {
-                val field: Field? = getField("old_${it.key}", it.value, oldStringBuilder)
-                if (field != null) {
-                    doc.add(field)
-                }
+        }
+        entry.priorProperties?.forEach {
+            val field: Field? = getField("old_${it.key}", it.value, oldStringBuilder)
+            if (field != null) {
+                doc.add(field)
             }
+        }
 
-            doc.add(TextField("all", currentStringBuilder.toString(), Field.Store.NO))
-            doc.add(TextField("old_all", oldStringBuilder.toString(), Field.Store.NO))
+        doc.add(TextField("all", currentStringBuilder.toString(), Field.Store.NO))
+        doc.add(TextField("old_all", oldStringBuilder.toString(), Field.Store.NO))
 
-            log.debug("Writing document")
-            writer.addDocument(doc)
-            writer.commit()
-            log.debug("Committed document")
-        }.then()
+        log.debug("Writing document")
+        writer.addDocument(doc)
+        log.debug("Wrote document")
     }
 
     override fun addSearchEntries(entries: Flux<SearchEntry>): Mono<Void> {
-        return entries.flatMap { addSearchEntry(it) }.then()
+        val writerMono = Mono.fromSupplier {
+            createWriter()
+        }.cache()
+        val writerEntryFlux: Flux<Pair<SearchEntry, IndexWriter>> = entries.withLatestFrom(writerMono, BiFunction { entry, writer ->
+            Pair(entry, writer)
+        })
+        val processFlux = writerEntryFlux.flatMapSequential { tuple2 ->
+            addSearchEntry(tuple2.first, tuple2.second)
+            Mono.just(tuple2.second)
+        }
+        val lastMono = processFlux.last()
+        return lastMono.map { writer ->
+            closeWriter(writer)
+            "done"
+        }.then()
+
     }
 
     override fun addWorkingAreaSearchEntry(path: Path, sessionId: String, properties: Map<String, Any>): Mono<Void> {
@@ -211,17 +239,61 @@ class LuceneSearchAdapter : SearchAdapter {
     }
 
     fun reset() {
+        log.debug("Resetting indexes")
+        val writer = createWriter()
         writer.deleteAll()
         writer.commit()
+        closeWriter(writer)
+        log.debug("Indexes reset")
     }
 
     private fun parseQuery(query: Query): Pair<org.apache.lucene.search.Query, org.apache.lucene.search.Query> {
         return when (query) {
             is AllTextQuery -> parseAllTextQuery(query)
             is NodeTypeQuery -> parseNodeTypeQuery(query)
+            is AndQuery -> parseAndQuery(query)
+            is OrQuery -> parseOrQuery(query)
             else -> throw RuntimeException("not implemented for type $query")
         }
     }
+
+    private fun parseAndQuery(query: AndQuery): Pair<org.apache.lucene.search.Query, org.apache.lucene.search.Query> {
+        val pairs = query.queries.map { q -> parseQuery(q) }
+        val positiveQueries: List<org.apache.lucene.search.Query> = pairs.map { p -> p.first }
+        val negativeQueries: List<org.apache.lucene.search.Query> = pairs.map { p -> p.second }
+
+        val posBuilder = BooleanQuery.Builder()
+        for (q in positiveQueries) {
+            posBuilder.add(q, BooleanClause.Occur.MUST)
+        }
+
+        val negBuilder = BooleanQuery.Builder()
+        for (q in negativeQueries) {
+            negBuilder.add(q, BooleanClause.Occur.MUST)
+        }
+
+        return Pair(posBuilder.build(), negBuilder.build())
+    }
+
+    // TODO: combine this with the above method
+    private fun parseOrQuery(query: OrQuery): Pair<org.apache.lucene.search.Query, org.apache.lucene.search.Query> {
+        val pairs = query.queries.map { q -> parseQuery(q) }
+        val positiveQueries: List<org.apache.lucene.search.Query> = pairs.map { p -> p.first }
+        val negativeQueries: List<org.apache.lucene.search.Query> = pairs.map { p -> p.second }
+
+        val posBuilder = BooleanQuery.Builder()
+        for (q in positiveQueries) {
+            posBuilder.add(q, BooleanClause.Occur.SHOULD)
+        }
+
+        val negBuilder = BooleanQuery.Builder()
+        for (q in negativeQueries) {
+            negBuilder.add(q, BooleanClause.Occur.SHOULD)
+        }
+
+        return Pair(posBuilder.build(), negBuilder.build())
+    }
+
 
     private fun parseAllTextQuery(query: AllTextQuery): Pair<org.apache.lucene.search.Query, org.apache.lucene.search.Query> {
         val parser = QueryParser("all", analyzer)

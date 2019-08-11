@@ -15,27 +15,12 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.assetfabric.storage.spi.metadata.mongo
+package org.assetfabric.storage.spi.search.support
 
-import com.mongodb.MongoClient
-import org.springframework.beans.factory.FactoryBean
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.stereotype.Component
+import org.assetfabric.storage.Query
 
-
-@Component
-@ConditionalOnProperty("assetfabric.storage.metadata.adapter.mongo", havingValue = "embedded")
-class EmbeddedMongoClientFactory : FactoryBean<MongoClient> {
-
-    private val ip = "localhost"
-    private val port = 27017
-
-    override fun getObject(): MongoClient? {
-        return MongoClient(ip, port)
-    }
-
-    override fun getObjectType(): Class<*>? {
-        return MongoClient::class.java
-    }
-
-}
+/**
+ * A [org.assetfabric.storage.Query] comprised of multiple subqueries, at least one of which must match in order for
+ * this query to match.
+ */
+class OrQuery(vararg val queries: Query): Query
