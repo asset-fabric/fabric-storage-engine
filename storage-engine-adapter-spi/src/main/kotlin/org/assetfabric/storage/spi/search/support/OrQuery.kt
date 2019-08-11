@@ -15,7 +15,12 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.assetfabric.storage.spi.search
+package org.assetfabric.storage.spi.search.support
 
-interface Query {
-}
+import org.assetfabric.storage.Query
+
+/**
+ * A [org.assetfabric.storage.Query] comprised of multiple subqueries, at least one of which must match in order for
+ * this query to match.
+ */
+class OrQuery(vararg val queries: Query): Query

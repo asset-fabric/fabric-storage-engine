@@ -102,7 +102,10 @@ class DefaultSessionService: SessionService {
         return sessionInfoOpt.map { info -> applicationContext.getBean(DefaultSession::class.java, info.getSessionID(), info.getUserID(), RevisionNumber(info.getRevision()))}
     }
 
-    override fun closeSession(session: Session) {
-        clusterSynchronizationService.removeSessionInfo(session.getSessionID())
+    override fun closeSession(session: Session): Mono<Void> {
+        return Mono.defer {
+            clusterSynchronizationService.removeSessionInfo(session.getSessionID())
+            Mono.empty<Void>()
+        }
     }
 }

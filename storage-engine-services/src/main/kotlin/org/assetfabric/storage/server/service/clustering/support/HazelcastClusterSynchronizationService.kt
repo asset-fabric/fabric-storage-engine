@@ -54,7 +54,7 @@ class HazelcastClusterSynchronizationService: ClusterSynchronizationService {
         val sMap: IMap<String, Session> = hazelcastInstance.getMap(SESSION_MAP_NAME)
         sMap.addEntryListener(object: EntryAddedListener<String, ClusterSessionInfo> {
             override fun entryAdded(entry: EntryEvent<String, ClusterSessionInfo>?) {
-                println("Added session ${entry!!.value} with key ${entry.key}")
+                log.debug("Detected session ${entry!!.value} with key ${entry.key}")
             }
         }, true)
 

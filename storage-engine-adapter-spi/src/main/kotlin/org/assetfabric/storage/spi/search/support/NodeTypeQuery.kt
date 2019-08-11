@@ -15,25 +15,12 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.assetfabric.storage.spi.search
+package org.assetfabric.storage.spi.search.support
 
 import org.assetfabric.storage.NodeType
-import org.assetfabric.storage.Path
-import org.assetfabric.storage.RevisionNumber
-import org.assetfabric.storage.State
+import org.assetfabric.storage.Query
 
 /**
- * An entry to be added to an Asset Fabric search index.
- * @param path the path of the node to index
- * @param revision the revision of the node to index
- * @param state the state of the node to index
- * @param currentProperties the properties currently set on the node
- * @param priorProperties the properties that were replaced or removed from the node since the prior revision
+ * A query for nodes of a specific node type.
  */
-class SearchEntry(
-        val path: Path,
-        val nodeType: NodeType,
-        val revision: RevisionNumber,
-        val state: State,
-        val currentProperties: Map<String, Any>,
-        val priorProperties: Map<String, Any>?)
+class NodeTypeQuery(val nodeType: NodeType): Query

@@ -29,7 +29,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 import java.io.ByteArrayInputStream
 import java.util.Date
 
-@ExtendWith(SpringExtension::class)
 @SpringBootTest
 @DisplayName("the fabric storage system")
 class NodeAccessTest: AbstractNodeTest() {

@@ -18,6 +18,7 @@
 package org.assetfabric.storage.spi.search
 
 import org.assetfabric.storage.Path
+import org.assetfabric.storage.Query
 import org.assetfabric.storage.Session
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono

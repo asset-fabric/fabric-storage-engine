@@ -58,11 +58,13 @@ class DefaultSessionController: SessionController {
     }
 
     override fun closeSession(@CookieValue(API_TOKEN) token: String): Mono<ResponseEntity<Void>> {
+        log.debug("Trying to close session $token")
         val sessionMono = sessionService.getSession(token)
-        return sessionMono.map { session: Session ->
-            session.close()
-            log.debug("Closed session for token $token")
-            ResponseEntity.ok().header("Set-Cookie", "$API_TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 GMT").build<Void>()
+        return sessionMono.flatMap { session: Session ->
+            session.close().then(Mono.defer {
+                log.debug("Closed session for token $token")
+                Mono.just(ResponseEntity.ok().header("Set-Cookie", "$API_TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 GMT").build<Void>())
+            })
         }.switchIfEmpty(Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).build()))
     }
 

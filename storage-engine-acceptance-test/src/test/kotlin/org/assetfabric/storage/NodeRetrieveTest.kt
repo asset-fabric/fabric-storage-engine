@@ -37,7 +37,6 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import reactor.core.publisher.Flux
 
-@ExtendWith(SpringExtension::class)
 @SpringBootTest
 @DisplayName("the fabric storage system")
 class NodeRetrieveTest: AbstractNodeTest() {

@@ -44,7 +44,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.reactive.server.WebTestClient
 import reactor.core.publisher.Flux
 
-@ExtendWith(SpringExtension::class)
 @SpringBootTest(classes = [Application::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DisplayName("the node controller")
 class RestNodeRetrieveTest: RestAbstractTest() {

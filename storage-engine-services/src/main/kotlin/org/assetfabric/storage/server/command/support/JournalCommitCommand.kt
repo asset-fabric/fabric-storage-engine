@@ -31,8 +31,6 @@ import org.assetfabric.storage.spi.metadata.CatalogPartitionAdapter
 import org.assetfabric.storage.spi.metadata.CommittedNodeIndexPartitionAdapter
 import org.assetfabric.storage.spi.metadata.DataPartitionAdapter
 import org.assetfabric.storage.spi.metadata.JournalPartitionAdapter
-import org.assetfabric.storage.spi.metadata.WorkingAreaNodeIndexPartitionAdapter
-import org.assetfabric.storage.spi.metadata.WorkingAreaPartitionAdapter
 import org.assetfabric.storage.spi.search.SearchAdapter
 import org.assetfabric.storage.spi.search.SearchEntry
 import org.assetfabric.storage.spi.support.DefaultCommittedInverseNodeReferenceRepresentation
@@ -42,7 +40,6 @@ import org.springframework.context.annotation.Scope
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.core.publisher.switchIfEmpty
 import java.time.Duration
 
 /**
@@ -116,6 +113,7 @@ class JournalCommitCommand(val session: Session): ReturningCommand<RevisionNumbe
         log.debug("Creating search entry for ${journalEntry.path()}")
         val path = journalEntry.path()
         val revision = journalEntry.revision()
+        val type = journalEntry.nodeType()
         val currentProps = mutableMapOf<String, Any>()
         val priorProps = mutableMapOf<String, Any>()
         currentProps.putAll(journalEntry.addedProperties())
@@ -125,7 +123,7 @@ class JournalCommitCommand(val session: Session): ReturningCommand<RevisionNumbe
             currentProps[entry.key] = newVal
             currentProps[entry.key] = oldVal
         }
-        return SearchEntry(path, revision, State.NORMAL, currentProps, priorProps)
+        return SearchEntry(path, type, revision, State.NORMAL, currentProps, priorProps)
     }
 
 }

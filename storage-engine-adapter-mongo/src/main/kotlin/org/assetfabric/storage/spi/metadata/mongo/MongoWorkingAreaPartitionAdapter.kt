@@ -95,6 +95,7 @@ class MongoWorkingAreaPartitionAdapter: WorkingAreaPartitionAdapter {
         var query = Query()
         val criteria = Criteria.where("sessionId").`is`(sessionId)
         query = query.addCriteria(criteria)
+        log.debug("Removing working area representations for session ID $sessionId")
         return provider.template.remove(query, workingAreaCollectionName).then()
     }
 

@@ -23,8 +23,6 @@ import org.assetfabric.storage.InputStreamWithLength
 import org.assetfabric.storage.Path
 import org.assetfabric.storage.Session
 import org.assetfabric.storage.rest.NodeContentRepresentation
-import org.assetfabric.storage.rest.NodeProperty
-import org.assetfabric.storage.rest.NodePropertyType
 import org.assetfabric.storage.rest.NodeRepresentation
 import org.assetfabric.storage.server.command.ReturningCommand
 import org.assetfabric.storage.server.service.NodePropertyRepresentationMappingService

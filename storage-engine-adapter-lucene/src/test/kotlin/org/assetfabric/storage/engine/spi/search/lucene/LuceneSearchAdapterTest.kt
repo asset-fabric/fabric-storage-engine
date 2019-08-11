@@ -20,6 +20,7 @@ package org.assetfabric.storage.engine.spi.search.lucene
 import com.nhaarman.mockito_kotlin.reset
 import org.apache.logging.log4j.LogManager
 import org.assetfabric.storage.ListType
+import org.assetfabric.storage.NodeType
 import org.assetfabric.storage.Path
 import org.assetfabric.storage.RevisionNumber
 import org.assetfabric.storage.Session
@@ -29,6 +30,9 @@ import org.assetfabric.storage.spi.search.SearchAdapter
 import org.assetfabric.storage.spi.search.SearchEntry
 import org.assetfabric.storage.spi.search.lucene.LuceneSearchAdapter
 import org.assetfabric.storage.spi.search.support.AllTextQuery
+import org.assetfabric.storage.spi.search.support.AndQuery
+import org.assetfabric.storage.spi.search.support.NodeTypeQuery
+import org.assetfabric.storage.spi.search.support.OrQuery
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -76,7 +80,7 @@ class LuceneSearchAdapterTest {
     @DisplayName("should be able to retrieve a node path from a search index using all applicable fields")
     fun testRetrieveDocument() {
 
-        searchAdapter.addSearchEntry(SearchEntry(Path("/node1"), RevisionNumber(1), State.NORMAL, mapOf(
+        searchAdapter.addSearchEntry(SearchEntry(Path("/node1"), NodeType.UNSTRUCTURED, RevisionNumber(1), State.NORMAL, mapOf(
                 "stringProp" to "test",
                 "intProp" to 3,
                 "booleanProp" to true,
@@ -106,8 +110,8 @@ class LuceneSearchAdapterTest {
     @Test
     @DisplayName("should be able to retrieve a matching node path from a prior revision")
     fun testRetrievePriorRevisionDoc() {
-        searchAdapter.addSearchEntry(SearchEntry(Path("/node1"), RevisionNumber(1), State.NORMAL, mapOf("stringProp" to "test"), null)).block()
-        searchAdapter.addSearchEntry(SearchEntry(Path("/node1"), RevisionNumber(2), State.NORMAL, mapOf("stringProp" to "stable"), null)).block()
+        searchAdapter.addSearchEntry(SearchEntry(Path("/node1"),  NodeType.UNSTRUCTURED, RevisionNumber(1), State.NORMAL, mapOf("stringProp" to "test"), null)).block()
+        searchAdapter.addSearchEntry(SearchEntry(Path("/node1"),  NodeType.UNSTRUCTURED, RevisionNumber(2), State.NORMAL, mapOf("stringProp" to "stable"), null)).block()
 
         `when`(session.revision()).thenReturn(RevisionNumber(1))
         val paths = searchAdapter.search(session, AllTextQuery("test"), 0, 5).collectList().block()!!
@@ -117,8 +121,8 @@ class LuceneSearchAdapterTest {
     @Test
     @DisplayName("should not retrieve matching node paths from a future revision")
     fun testRetrieveFutureRevision() {
-        searchAdapter.addSearchEntry(SearchEntry(Path("/node1"), RevisionNumber(1), State.NORMAL, mapOf("stringProp" to "test"), null)).block()
-        searchAdapter.addSearchEntry(SearchEntry(Path("/node1"), RevisionNumber(2), State.NORMAL, mapOf("stringProp" to "stable"), null)).block()
+        searchAdapter.addSearchEntry(SearchEntry(Path("/node1"),  NodeType.UNSTRUCTURED, RevisionNumber(1), State.NORMAL, mapOf("stringProp" to "test"), null)).block()
+        searchAdapter.addSearchEntry(SearchEntry(Path("/node1"),  NodeType.UNSTRUCTURED, RevisionNumber(2), State.NORMAL, mapOf("stringProp" to "stable"), null)).block()
 
         `when`(session.revision()).thenReturn(RevisionNumber(1))
         val paths = searchAdapter.search(session, AllTextQuery("stable"), 0, 5).collectList().block()!!
@@ -128,12 +132,12 @@ class LuceneSearchAdapterTest {
     @Test
     @DisplayName("should not retrieve matching node paths when they are matched by later, blocking changes")
     fun testRetrieveBlockingRevision() {
-        searchAdapter.addSearchEntry(SearchEntry(Path("/node1"), RevisionNumber(1), State.NORMAL, mapOf("stringProp" to "test"), null)).block()
+        searchAdapter.addSearchEntry(SearchEntry(Path("/node1"),  NodeType.UNSTRUCTURED, RevisionNumber(1), State.NORMAL, mapOf("stringProp" to "test"), null)).block()
 
         // this demonstrates how changes to node properties MUST be filed with the adapter.
         // new values must be given in the first set of properties, and removed or altered properties must be given in the second set of properties.
 
-        searchAdapter.addSearchEntry(SearchEntry(Path("/node1"), RevisionNumber(2), State.NORMAL, mapOf("stringProp" to "stable"), mapOf("stringProp" to "test"))).block()
+        searchAdapter.addSearchEntry(SearchEntry(Path("/node1"),  NodeType.UNSTRUCTURED, RevisionNumber(2), State.NORMAL, mapOf("stringProp" to "stable"), mapOf("stringProp" to "test"))).block()
 
         `when`(session.revision()).thenReturn(RevisionNumber(2))
 
@@ -147,8 +151,8 @@ class LuceneSearchAdapterTest {
     @Test
     @DisplayName("should be able to write multiple search entries at once")
     fun testAddMultipleEntries() {
-        val node1 = SearchEntry(Path("/node1"), RevisionNumber(1), State.NORMAL, mapOf("stringProp" to "test"), null)
-        val node2 = SearchEntry(Path("/node2"), RevisionNumber(1), State.NORMAL, mapOf("stringProp" to "test"), null)
+        val node1 = SearchEntry(Path("/node1"),  NodeType.UNSTRUCTURED, RevisionNumber(1), State.NORMAL, mapOf("stringProp" to "test"), null)
+        val node2 = SearchEntry(Path("/node2"),  NodeType.UNSTRUCTURED, RevisionNumber(1), State.NORMAL, mapOf("stringProp" to "test"), null)
         val nodeFlux = Flux.just(node1, node2)
 
         searchAdapter.addSearchEntries(nodeFlux).block()
@@ -156,6 +160,58 @@ class LuceneSearchAdapterTest {
         `when`(session.revision()).thenReturn(RevisionNumber(1))
         val paths = searchAdapter.search(session, AllTextQuery("test"), 0, 5).collectList().block()!!
         assertEquals(2, paths.size, "Path count mismatch")
+
+    }
+
+    @Test
+    @DisplayName("should be able to retrieve a matching node path by node type")
+    fun testRetrieveByNodeType() {
+        searchAdapter.addSearchEntry(SearchEntry(Path("/node1"),  NodeType.UNSTRUCTURED, RevisionNumber(1), State.NORMAL, mapOf("stringProp" to "test"), null)).block()
+
+        `when`(session.revision()).thenReturn(RevisionNumber(1))
+        val paths = searchAdapter.search(session, NodeTypeQuery(NodeType.UNSTRUCTURED), 0, 5).collectList().block()!!
+        assertEquals(1, paths.size, "Path count mismatch")
+    }
+
+    @Test
+    @DisplayName("should be able to retrieve a matching node path by all text and node type")
+    fun testRetrieveByAllTextAndNodeType() {
+        searchAdapter.addSearchEntry(SearchEntry(Path("/node1"),  NodeType.UNSTRUCTURED, RevisionNumber(1), State.NORMAL, mapOf("stringProp" to "test"), null)).block()
+        searchAdapter.addSearchEntry(SearchEntry(Path("/node2"),  NodeType("af:other:1"), RevisionNumber(1), State.NORMAL, mapOf("stringProp" to "test"), null)).block()
+        searchAdapter.addSearchEntry(SearchEntry(Path("/node3"),  NodeType("af:other:1"), RevisionNumber(1), State.NORMAL, mapOf("stringProp" to "people"), null)).block()
+
+        `when`(session.revision()).thenReturn(RevisionNumber(1))
+
+        val paths = searchAdapter.search(session, NodeTypeQuery(NodeType.UNSTRUCTURED), 0, 5).collectList().block()!!
+        assertEquals(1, paths.size, "Path count mismatch")
+
+        val paths2 = searchAdapter.search(session, NodeTypeQuery(NodeType("af:other:1")), 0, 5).collectList().block()!!
+        assertEquals(2, paths2.size, "Path count mismatch")
+
+        val paths3 = searchAdapter.search(session, AllTextQuery("test"), 0, 5).collectList().block()!!
+        assertEquals(2, paths3.size, "Path count mismatch")
+
+        val paths4 = searchAdapter.search(session, AndQuery(AllTextQuery("test"), NodeTypeQuery(NodeType("af:other:1"))), 0, 5).collectList().block()!!
+        assertEquals(1, paths4.size, "Path count mismatch")
+
+    }
+
+    @Test
+    @DisplayName("should be able to retrieve a matching node path by all text and multiple node types")
+    fun testRetrieveByAllTextAndOrQuery() {
+        searchAdapter.addSearchEntry(SearchEntry(Path("/node1"),  NodeType.UNSTRUCTURED, RevisionNumber(1), State.NORMAL, mapOf("stringProp" to "test"), null)).block()
+        searchAdapter.addSearchEntry(SearchEntry(Path("/node2"),  NodeType("af:other:1"), RevisionNumber(1), State.NORMAL, mapOf("stringProp" to "test"), null)).block()
+        searchAdapter.addSearchEntry(SearchEntry(Path("/node3"),  NodeType("af:third:1"), RevisionNumber(1), State.NORMAL, mapOf("stringProp" to "test"), null)).block()
+
+        `when`(session.revision()).thenReturn(RevisionNumber(1))
+
+        val textQuery = AllTextQuery("test")
+        val orQuery = OrQuery(NodeTypeQuery(NodeType("af:other:1")), NodeTypeQuery(NodeType.UNSTRUCTURED))
+        val andQuery = AndQuery(textQuery, orQuery)
+
+        val paths = searchAdapter.search(session, andQuery, 0, 5).collectList().block()!!
+        assertEquals(2, paths.size, "Path count mismatch")
+
 
     }
 

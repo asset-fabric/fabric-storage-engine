@@ -19,6 +19,7 @@ package org.assetfabric.storage.server.model
 
 import org.assetfabric.storage.Node
 import org.assetfabric.storage.Path
+import org.assetfabric.storage.Query
 import org.assetfabric.storage.RevisionNumber
 import org.assetfabric.storage.Session
 import org.assetfabric.storage.server.service.MetadataManagerService
@@ -71,12 +72,19 @@ class DefaultSession(private val sessionID: String, private val userID: String, 
         return representationFlux.map { context.getBean(DefaultNode::class.java, this, it) }
     }
 
+    override fun search(query: Query): Flux<Node> {
+        val representationFlux: Flux<NodeRepresentation> = metadataManagerService.search(this, query)
+        return representationFlux.map { context.getBean(DefaultNode::class.java, this, it) }
+    }
+
     override fun commit(): Mono<Void> {
         return metadataManagerService.commitSession(this)
     }
 
-    override fun close() {
-        sessionService.closeSession(this)
+    override fun close(): Mono<Void> {
+        return metadataManagerService.destroySessionChanges(this).then(
+            sessionService.closeSession(this)
+        )
     }
 
     override fun toString(): String {

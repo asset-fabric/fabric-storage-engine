@@ -22,16 +22,18 @@ import io.restassured.response.Response
 import io.restassured.response.ResponseBodyExtractionOptions
 import io.restassured.specification.RequestSpecification
 import org.apache.logging.log4j.LogManager
+import org.assetfabric.storage.MongoSetupExtension
 import org.assetfabric.storage.server.controller.Constants
+import org.assetfabric.storage.server.service.support.DefaultMetadataManagerService
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import java.io.InputStream
 
-@ExtendWith(SpringExtension::class)
-@DirtiesContext
+@ExtendWith(SpringExtension::class, MongoSetupExtension::class)
 abstract class RestAbstractTest {
 
     private val log = LogManager.getLogger(RestAbstractTest::class.java)
@@ -48,6 +50,14 @@ abstract class RestAbstractTest {
 
     @Value("\${test.password}")
     private lateinit var password: String
+
+    @Autowired
+    private lateinit var metadataManagerService: DefaultMetadataManagerService
+
+    @BeforeEach
+    private fun reset() {
+        metadataManagerService.reset()
+    }
 
     private val loginUtility = RestLoginUtility()
 

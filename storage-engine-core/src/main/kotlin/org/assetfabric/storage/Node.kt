@@ -81,6 +81,11 @@ interface Node {
     fun stringProperty(name: String): String?
 
     /**
+     * Returns the given property as a Node mono.
+     */
+    fun nodeProperty(name: String): Mono<Node>
+
+    /**
      * Returns the nodes that have [NodeReference]s pointing at this node.
      */
     fun referringNodes(): Flux<Node>
