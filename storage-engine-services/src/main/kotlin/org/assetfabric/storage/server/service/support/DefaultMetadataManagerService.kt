@@ -40,6 +40,7 @@ import org.assetfabric.storage.server.service.BinaryManagerService
 import org.assetfabric.storage.server.service.MetadataManagerService
 import org.assetfabric.storage.spi.InverseNodeReferenceRepresentation
 import org.assetfabric.storage.spi.NodeRepresentation
+import org.assetfabric.storage.spi.RevisionedNodeRepresentation
 import org.assetfabric.storage.spi.WorkingAreaInverseNodeReferenceRepresentation
 import org.assetfabric.storage.spi.WorkingAreaNodeRepresentation
 import org.assetfabric.storage.spi.metadata.CatalogPartitionAdapter
@@ -222,15 +223,9 @@ class DefaultMetadataManagerService : MetadataManagerService {
                 .filter { repr -> repr.state() == State.NORMAL }
     }
 
-    override fun childNodeRepresentations(session: Session, path: Path): Flux<NodeRepresentation> {
-        val workingAreaChildRepresentations = workingAreaPartitionAdapter.nodeChildRepresentations(session.getSessionID(), path).map {
-            it.effectiveNodeRepresentation()
-        }
-
-        val committedRepresentations = dataPartitionAdapter.nodeChildRepresentations(session.revision(), path)
-
-        val workingListMono = workingAreaChildRepresentations.collectList()
-        val committedMono = committedRepresentations.collectList()
+    private fun workingNodeOverlayFlux(working: Flux<NodeRepresentation>, committed: Flux<RevisionedNodeRepresentation>): Flux<NodeRepresentation> {
+        val workingListMono = working.collectList()
+        val committedMono = committed.collectList()
 
         /*
          * Collect the committed and working nodes.  Replace committed node representations with their working counterparts.
@@ -250,6 +245,22 @@ class DefaultMetadataManagerService : MetadataManagerService {
         }.filter { it.state() == State.NORMAL }
 
         return listFlux
+    }
+
+    override fun childNodeRepresentations(session: Session, path: Path): Flux<NodeRepresentation> {
+        val workingAreaChildRepresentations = workingAreaPartitionAdapter.nodeChildRepresentations(session.getSessionID(), path).map {
+            it.effectiveNodeRepresentation()
+        }
+        val committedRepresentations = dataPartitionAdapter.nodeChildRepresentations(session.revision(), path)
+        return workingNodeOverlayFlux(workingAreaChildRepresentations, committedRepresentations)
+    }
+
+    override fun descendantNodeRepresentations(session: Session, path: Path): Flux<NodeRepresentation> {
+        val workingAreaChildRepresentations = workingAreaPartitionAdapter.nodeDescendantRepresentations(session.getSessionID(), path).map {
+            it.effectiveNodeRepresentation()
+        }
+        val committedRepresentations = dataPartitionAdapter.nodeDescendantRepresentations(session.revision(), path)
+        return workingNodeOverlayFlux(workingAreaChildRepresentations, committedRepresentations)
     }
 
     private fun inverseReferences(session: Session, path: Path): Flux<InverseNodeReferenceRepresentation> {

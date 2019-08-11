@@ -86,6 +86,11 @@ class DefaultNode(val session: Session, val nodeRepresentation: NodeRepresentati
         return childrenFlux.map { context.getBean(DefaultNode::class.java, session, it) }
     }
 
+    override fun descendants(): Flux<Node> {
+        val descFlux = metadataManagerService.descendantNodeRepresentations(session, path())
+        return descFlux.map { context.getBean(DefaultNode::class.java, session, it) }
+    }
+
     override fun stringProperty(name: String): String? {
         return nodeRepresentation.properties()[name] as String?
     }

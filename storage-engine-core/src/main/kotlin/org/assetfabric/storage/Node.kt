@@ -66,9 +66,14 @@ interface Node {
     fun child(name: String): Mono<Node>
 
     /**
-     * Returns all the children of this node.
+     * Returns all the immediate children of this node.
      */
     fun children(): Flux<Node>
+
+    /**
+     * Returns all descendants, at any level, of this node.
+     */
+    fun descendants(): Flux<Node>
 
     /**
      * Updates the properties of this node.

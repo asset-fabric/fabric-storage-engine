@@ -92,6 +92,14 @@ interface MetadataManagerService {
     fun childNodeRepresentations(session: Session, path: Path): Flux<NodeRepresentation>
 
     /**
+     * Returns the descendants of the node at the given path, either from the active data partition
+     * or from the working area.
+     * @param session the session being used to retrieve the child nodes
+     * @param path the path of the node whose descendants should be returned
+     */
+    fun descendantNodeRepresentations(session: Session, path: Path): Flux<NodeRepresentation>
+
+    /**
      * Returns the node representations in the working set and committed set that contain [NodeReference]s to the given node.
      */
     fun referringNodes(session: Session, path: Path): Flux<NodeRepresentation>

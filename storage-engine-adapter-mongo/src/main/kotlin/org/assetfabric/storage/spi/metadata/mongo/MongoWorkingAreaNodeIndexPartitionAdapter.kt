@@ -52,8 +52,7 @@ class MongoWorkingAreaNodeIndexPartitionAdapter: WorkingAreaNodeIndexPartitionAd
     }
 
     override fun nodeReferencesAtOrBelow(sessionId: String, nodePath: Path): Flux<WorkingAreaInverseNodeReferenceRepresentation> {
-        val criteria = Criteria()
-                .regex(Pattern.compile("^${nodePath.path}"))
+        val criteria = Criteria.where("nodePath").regex(Pattern.compile("^${nodePath.path}"))
         return nodeReferencesFor(sessionId, criteria)
     }
 

@@ -61,8 +61,8 @@ class MongoCommittedNodeIndexPartitionAdapter: CommittedNodeIndexPartitionAdapte
 
     override fun nodeReferencesAtOrBelow(nodePath: Path, revision: RevisionNumber): Flux<CommittedInverseNodeReferenceRepresentation> {
         val criteria = Criteria()
-                .regex(Pattern.compile("^${nodePath.path}"))
-                .andOperator(Criteria.where("revision").lte(revision.toString()))
+                .andOperator(Criteria.where("revision").lte(revision.toString()),
+                        Criteria.where("nodePath").regex(Pattern.compile("^${nodePath.path}")))
 
         return referencesForCriteria(criteria)
     }
