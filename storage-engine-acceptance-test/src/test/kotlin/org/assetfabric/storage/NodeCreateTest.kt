@@ -25,12 +25,10 @@ import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
-import org.springframework.test.context.junit.jupiter.SpringExtension
 import reactor.core.publisher.Flux
 import java.io.ByteArrayInputStream
 import java.util.Date
@@ -63,6 +61,8 @@ class NodeCreateTest: AbstractNodeTest() {
                 "stringListProp" to TypedList(ListType.STRING, listOf("a", "b")),
                 "intProp" to 3,
                 "intListProp" to TypedList(ListType.INTEGER, listOf(1, 2, 3)),
+                "doubleProp" to 3.0,
+                "doubleListProp" to TypedList(ListType.DOUBLE, listOf(1.0, 4.56)),
                 "booleanProp" to true,
                 "booleanListProp" to TypedList(ListType.BOOLEAN, listOf(true, false)),
                 "longProp" to 4L,
@@ -71,7 +71,17 @@ class NodeCreateTest: AbstractNodeTest() {
                 "dateListProp" to TypedList(ListType.DATE, listOf(Date(), Date())),
                 "nodeRefProp" to NodeReference("/"),
                 "nodeRefListProp" to TypedList(ListType.NODE, listOf(NodeReference("/"))),
-                "binProp" to InputStreamWithLength(ByteArrayInputStream(byteArrayOf(1, 2, 3)), 3)
+                "binProp" to InputStreamWithLength(ByteArrayInputStream(byteArrayOf(1, 2, 3)), 3),
+                "paramNodeRefProp" to ParameterizedNodeReference("/",
+                        mapOf(
+                                "string" to "string",
+                                "int" to 3,
+                                "bool" to false,
+                                "dateProp" to Date(),
+                                "dateListProp" to TypedList(ListType.DATE, listOf(Date(), Date()))
+                        // TODO: add all valid types
+                        )
+                )
          )
         val newNode = session.rootNode().flatMap { node ->
             node.createChild("child1", NodeType.UNSTRUCTURED, propertyMap)
@@ -79,6 +89,8 @@ class NodeCreateTest: AbstractNodeTest() {
         assertEquals("child1", newNode.name())
         assertEquals(Path("/child1"), newNode.path())
         assertEquals(NodeType.UNSTRUCTURED, newNode.nodeType())
+        val paramRefPair = newNode.parameterizedNodeReferenceProperty("paramNodeRefProp").block()!!
+        assertEquals(Path("/"), paramRefPair.first.path())
     }
 
     @Test

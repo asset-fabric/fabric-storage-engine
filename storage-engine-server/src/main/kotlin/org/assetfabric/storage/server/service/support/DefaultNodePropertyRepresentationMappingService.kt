@@ -69,6 +69,7 @@ class DefaultNodePropertyRepresentationMappingService: NodePropertyRepresentatio
                     NodePropertyType.STRING -> np.getValue()
                     NodePropertyType.INTEGER -> np.getValue().toInt()
                     NodePropertyType.LONG -> np.getValue().toLong()
+                    NodePropertyType.DOUBLE -> np.getValue().toDouble()
                     NodePropertyType.BOOLEAN -> np.getValue().toBoolean()
                     NodePropertyType.DATE -> stringToDate(np.getValue())
                     NodePropertyType.BINARY -> np.getValue()
@@ -80,6 +81,7 @@ class DefaultNodePropertyRepresentationMappingService: NodePropertyRepresentatio
                     NodePropertyType.BOOLEAN -> TypedList(ListType.BOOLEAN, np.getValues().map { it.toBoolean() })
                     NodePropertyType.DATE -> TypedList(ListType.DATE, np.getValues().map { stringToDate(it) })
                     NodePropertyType.INTEGER -> TypedList(ListType.INTEGER, np.getValues().map { it.toInt() })
+                    NodePropertyType.DOUBLE -> TypedList(ListType.DOUBLE, np.getValues().map { it.toDouble() })
                     NodePropertyType.LONG -> TypedList(ListType.LONG, np.getValues().map { it.toLong() })
                     NodePropertyType.STRING -> TypedList(ListType.STRING, np.getValues())
                     NodePropertyType.NODE -> TypedList(ListType.NODE, np.getValues().map { NodeReference(it) })
@@ -103,6 +105,7 @@ class DefaultNodePropertyRepresentationMappingService: NodePropertyRepresentatio
                 is String -> SingleValueNodeProperty(NodePropertyType.STRING, value)
                 is Int -> SingleValueNodeProperty(NodePropertyType.INTEGER, value.toString())
                 is Long -> SingleValueNodeProperty(NodePropertyType.LONG, value.toString())
+                is Double -> SingleValueNodeProperty(NodePropertyType.DOUBLE, value.toString())
                 is Boolean -> SingleValueNodeProperty(NodePropertyType.BOOLEAN, value.toString())
                 is Date -> SingleValueNodeProperty(NodePropertyType.DATE, dateToString(value))
                 is BinaryReference -> SingleValueNodeProperty(NodePropertyType.BINARY, binaryReferenceToUrl(value).path)
@@ -115,6 +118,7 @@ class DefaultNodePropertyRepresentationMappingService: NodePropertyRepresentatio
                         ListType.NODE -> NodePropertyType.NODE
                         ListType.LONG -> NodePropertyType.LONG
                         ListType.STRING -> NodePropertyType.STRING
+                        ListType.DOUBLE -> NodePropertyType.DOUBLE
                     }
                     // TODO: convert these values into strings
                     val propList: List<String> = when(value.values.isEmpty()) {
@@ -127,6 +131,7 @@ class DefaultNodePropertyRepresentationMappingService: NodePropertyRepresentatio
                                 ListType.DATE -> value.values.map { dateToString(it as Date)}
                                 ListType.NODE -> value.values.map { (it as NodeReference).path }
                                 ListType.LONG -> value.values.map { it.toString() }
+                                ListType.DOUBLE -> value.values.map { it.toString() }
                             }
                         }
                     }

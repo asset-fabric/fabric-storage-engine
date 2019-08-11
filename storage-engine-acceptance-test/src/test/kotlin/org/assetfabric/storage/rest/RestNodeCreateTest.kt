@@ -68,6 +68,8 @@ class RestNodeCreateTest: RestAbstractTest() {
         contentRepresentation.setProperty("dateListProp", NodePropertyType.DATE, listOf("2012-01-03T00:00:00Z", "2012-01-03T00:00:00Z"))
         contentRepresentation.setProperty("nodeRef", NodePropertyType.NODE, "/")
         contentRepresentation.setProperty("nodeRefList", NodePropertyType.NODE, listOf("/", "/"))
+        contentRepresentation.setProperty("doubleProp", NodePropertyType.DOUBLE, "3.0")
+        contentRepresentation.setProperty("doubleListProp", NodePropertyType.DOUBLE, listOf("3.2", "23.347"))
 
         val (node, response) = createNode(token, nodePath, contentRepresentation, hashMapOf())
 

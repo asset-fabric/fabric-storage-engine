@@ -15,30 +15,10 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.assetfabric.storage.rest
+package org.assetfabric.storage
 
-enum class NodePropertyType {
-
-    /**
-     * A special type of node property that is only used when creating/updating a new node
-     * with a new/updated binary property.
-     */
-    BINARY_INPUT,
-
-    INTEGER,
-
-    LONG,
-
-    STRING,
-
-    BOOLEAN,
-
-    DATE,
-
-    NODE,
-
-    BINARY,
-
-    DOUBLE
-
-}
+/**
+ * A [NodeReference] that contains properties which provide additional information about the node relationship.
+ * Most property types are supported, but NOT node reference properties or binary properties.
+ */
+class ParameterizedNodeReference(path: String, val properties: Map<String, Any>): NodeReference(path)

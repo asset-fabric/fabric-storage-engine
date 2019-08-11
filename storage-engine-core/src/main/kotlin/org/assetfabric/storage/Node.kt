@@ -86,6 +86,11 @@ interface Node {
     fun nodeProperty(name: String): Mono<Node>
 
     /**
+     * Returns the given property as a node with additional associated properties.
+     */
+    fun parameterizedNodeReferenceProperty(name: String): Mono<Pair<Node, Map<String, Any>>>
+
+    /**
      * Returns the nodes that have [NodeReference]s pointing at this node.
      */
     fun referringNodes(): Flux<Node>

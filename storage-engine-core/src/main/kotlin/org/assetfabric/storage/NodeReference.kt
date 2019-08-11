@@ -20,9 +20,8 @@ package org.assetfabric.storage
 /**
  * A reference that points to another [Node].
  * @param path the path of the node to be referenced
- * @param snapshotRevision the snapshot revision of the node to reference, or null if the reference is to the latest revision of the node
  */
-class NodeReference(val path: String) {
+open class NodeReference(val path: String) {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -36,4 +35,5 @@ class NodeReference(val path: String) {
     override fun hashCode(): Int {
         return path.hashCode()
     }
+
 }

@@ -20,6 +20,7 @@ package org.assetfabric.storage.server.model
 import org.assetfabric.storage.Node
 import org.assetfabric.storage.NodeReference
 import org.assetfabric.storage.NodeType
+import org.assetfabric.storage.ParameterizedNodeReference
 import org.assetfabric.storage.Path
 import org.assetfabric.storage.RevisionNumber
 import org.assetfabric.storage.Session
@@ -94,6 +95,16 @@ class DefaultNode(val session: Session, val nodeRepresentation: NodeRepresentati
         return when(nodeProp) {
             null -> Mono.empty()
             else -> session.node(nodeProp.path)
+        }
+    }
+
+    override fun parameterizedNodeReferenceProperty(name: String): Mono<Pair<Node, Map<String, Any>>> {
+        val nodeProp = nodeRepresentation.properties()[name] as ParameterizedNodeReference?
+        return when(nodeProp) {
+            null -> Mono.empty()
+            else -> session.node(nodeProp.path).map {
+                Pair(it, nodeProp.properties)
+            }
         }
     }
 

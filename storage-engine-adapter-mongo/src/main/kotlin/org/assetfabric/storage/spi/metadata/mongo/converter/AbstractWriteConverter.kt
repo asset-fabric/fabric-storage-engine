@@ -19,6 +19,7 @@ package org.assetfabric.storage.spi.metadata.mongo.converter
 
 import org.assetfabric.storage.BinaryReference
 import org.assetfabric.storage.NodeReference
+import org.assetfabric.storage.ParameterizedNodeReference
 import org.assetfabric.storage.TypedList
 import org.bson.Document
 
@@ -45,6 +46,13 @@ abstract class AbstractWriteConverter {
                 doc.set("type", "TypedList")
                 doc.set("listType", value.listType.toString())
                 doc.set("values", value.values.map { itemForProperty(it) })
+                doc
+            }
+            is ParameterizedNodeReference -> {
+                val doc = Document()
+                doc.set("type", "ParameterizedNodeReference")
+                doc.set("path", value.path)
+                doc.set("properties", documentFromMap(value.properties))
                 doc
             }
             is NodeReference -> {

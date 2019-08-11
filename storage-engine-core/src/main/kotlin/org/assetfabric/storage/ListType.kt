@@ -29,6 +29,8 @@ enum class ListType {
 
     NODE,
 
-    STRING
+    STRING,
+
+    DOUBLE
 
 }
