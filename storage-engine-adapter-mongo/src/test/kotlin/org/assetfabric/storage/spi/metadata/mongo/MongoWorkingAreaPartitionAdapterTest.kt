@@ -47,7 +47,7 @@ import reactor.core.publisher.Mono
 class MongoWorkingAreaPartitionAdapterTest {
 
     @Configuration
-    @Import(MongoWorkingAreaPartitionAdapter::class, MongoTemplateConfiguration::class, EmbeddedMongoClientFactory::class)
+    @Import(MongoWorkingAreaPartitionAdapter::class, MongoTemplateConfiguration::class, MongoClientFactory::class)
     internal class Config
 
     @Autowired

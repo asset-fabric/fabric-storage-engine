@@ -8,6 +8,7 @@ jobs:
     docker:
       # specify the version you desire here
       - image: circleci/openjdk:8u171-jdk
+      - image: circleci/mongo:latest
 
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
@@ -36,7 +37,7 @@ jobs:
           key: v1-dependencies-{{ checksum "pom.xml" }}
 
       # run tests!
-      - run: mvn clean deploy sonar:sonar dependency:go-offline
+      - run: mvn dependency:go-offline clean deploy sonar:sonar
 
       - store_test_results:
           path: storage-engine-acceptance-test/target/surefire-reports

@@ -31,7 +31,8 @@ assetfabric:
     metadata:
       adapter:
         type: mongo
-        mongo: embedded
+        mongo:
+          databaseName: acceptance-test
     search:
       adapter:
         type: lucene

@@ -53,7 +53,7 @@ class MongoJournalPartitionAdapterTest {
     private val log = LogManager.getLogger(MongoJournalPartitionAdapterTest::class.java)
 
     @Configuration
-    @Import(MongoJournalPartitionAdapter::class, MongoTemplateConfiguration::class, EmbeddedMongoClientFactory::class)
+    @Import(MongoJournalPartitionAdapter::class, MongoTemplateConfiguration::class, MongoClientFactory::class)
     internal class Config
 
     @Autowired
