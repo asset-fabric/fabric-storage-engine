@@ -1,0 +1,18 @@
+<div id="navigationHeader">
+
+  <div id="navLinks">
+    <div class="navLink"><a [routerLink]="['/browse']" routerLinkActive="activeLink">Browse</a></div>
+    <div class="navLink"><a [routerLink]="['/security']" routerLinkActive="activeLink">Security</a></div>
+    <div class="navLink"><a [routerLink]="['/nodetypes']" routerLinkActive="activeLink">Node Types</a></div>
+  </div>
+
+  <div id="logoutUserInfo">
+    <div id="logoutMessage">Log out user</div>
+    <div id="logoutUser">Joe User</div>
+  </div>
+
+
+</div>
+<div id="navigationContent">
+  <router-outlet></router-outlet>
+</div>
