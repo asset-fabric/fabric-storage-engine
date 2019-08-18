@@ -17,30 +17,12 @@
 
 package org.assetfabric.storage.rest
 
-enum class NodePropertyType {
+class ParameterizedNodeReferenceListProperty(): AbstractListNodeProperty<ParameterizedNodeReferenceProperty>() {
 
-    /**
-     * A special type of node property that is only used when creating/updating a new node
-     * with a new/updated binary property.
-     */
-    BINARY_INPUT,
+    constructor(vararg nodes: ParameterizedNodeReferenceProperty): this() {
+        this.setValues(nodes.toList())
+    }
 
-    INTEGER,
-
-    LONG,
-
-    STRING,
-
-    BOOLEAN,
-
-    DATE,
-
-    NODE,
-
-    PARAMETERIZED_NODE,
-
-    BINARY,
-
-    DOUBLE
+    override fun getType(): NodePropertyType = NodePropertyType.PARAMETERIZED_NODE
 
 }

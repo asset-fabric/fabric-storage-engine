@@ -17,6 +17,7 @@
 
 package org.assetfabric.storage.rest
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.fasterxml.jackson.annotation.JsonTypeInfo
@@ -24,19 +25,32 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
         include = JsonTypeInfo.As.PROPERTY,
-        property = "arity")
+        property = "type")
 @JsonSubTypes(
-    Type(value = SingleValueNodeProperty::class, name = "single"),
-    Type(value = MultiValueNodeProperty::class, name = "multi")
-)
+        Type(value = StringProperty::class, name = "string"),
+        Type(value = IntegerProperty::class, name = "int"),
+        Type(value = LongProperty::class, name = "long"),
+        Type(value = DoubleProperty::class, name = "double"),
+        Type(value = BooleanProperty::class, name = "boolean"),
+        Type(value = DateProperty::class, name = "date"),
+        Type(value = NodeReferenceProperty::class, name = "node"),
+        Type(value = BinaryProperty::class, name = "binary"),
+        Type(value = BinaryInputProperty::class, name = "binaryinput"),
+        Type(value = ParameterizedNodeReferenceProperty::class, name = "paramnode"),
+
+        Type(value = StringListProperty::class, name = "string[]"),
+        Type(value = IntegerListProperty::class, name = "int[]"),
+        Type(value = LongListProperty::class, name = "long[]"),
+        Type(value = DoubleListProperty::class, name = "double[]"),
+        Type(value = BooleanListProperty::class, name = "boolean[]"),
+        Type(value = DateListProperty::class, name = "date[]"),
+        Type(value = NodeReferenceListProperty::class, name = "node[]"),
+        Type(value = BinaryListProperty::class, name = "binary[]"),
+        Type(value = ParameterizedNodeReferenceListProperty::class, name = "paramnode[]")
+        )
 abstract class NodeProperty {
 
-    protected lateinit var propertyType: NodePropertyType
-
-    fun getType(): NodePropertyType = propertyType
-
-    fun setType(t: NodePropertyType) {
-        propertyType = t
-    }
+    @JsonIgnore
+    abstract fun getType(): NodePropertyType
 
 }

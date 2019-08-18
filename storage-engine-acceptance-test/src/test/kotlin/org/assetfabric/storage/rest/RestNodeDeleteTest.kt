@@ -51,7 +51,7 @@ class RestNodeDeleteTest: RestAbstractTest() {
         val token = getLoginToken()
         val contentRepresentation = NodeContentRepresentation()
         contentRepresentation.setNodeType(NodeType.UNSTRUCTURED.toString())
-        contentRepresentation.setProperty("booleanProp", NodePropertyType.BOOLEAN, "true")
+        contentRepresentation.setProperty("booleanProp", BooleanProperty(true))
         val (_, createResponse) = createNode(token, nodePath, contentRepresentation, hashMapOf())
         assertEquals(200, createResponse.statusCode, "Wrong HTTP status code")
 

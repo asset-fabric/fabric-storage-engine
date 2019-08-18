@@ -17,30 +17,11 @@
 
 package org.assetfabric.storage.rest
 
-enum class NodePropertyType {
+class DateProperty(): AbstractScalarNodeProperty() {
 
-    /**
-     * A special type of node property that is only used when creating/updating a new node
-     * with a new/updated binary property.
-     */
-    BINARY_INPUT,
+    constructor(date: String): this() {
+        this.setValue(date)
+    }
 
-    INTEGER,
-
-    LONG,
-
-    STRING,
-
-    BOOLEAN,
-
-    DATE,
-
-    NODE,
-
-    PARAMETERIZED_NODE,
-
-    BINARY,
-
-    DOUBLE
-
+    override fun getType(): NodePropertyType = NodePropertyType.DATE
 }

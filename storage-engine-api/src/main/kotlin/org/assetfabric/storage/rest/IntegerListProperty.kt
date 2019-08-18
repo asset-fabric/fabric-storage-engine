@@ -17,39 +17,15 @@
 
 package org.assetfabric.storage.rest
 
-class MultiValueNodeProperty(): NodeProperty() {
+class IntegerListProperty(): AbstractListNodeProperty<String>() {
 
-    private lateinit var values: List<String>
-
-    constructor(t: NodePropertyType, v: List<String>): this() {
-        this.setType(t)
-        this.setValues(v)
+    constructor(vararg ints: Int): this() {
+        this.setValues(ints.map { it.toString() })
     }
 
-    fun getValues(): List<String> = values
-
-    fun setValues(list: List<String>) {
-        values = list
+    constructor(vararg ints: Integer): this() {
+        this.setValues(ints.map { it.toString()} )
     }
 
-    override fun toString(): String {
-        return "MultiValueNodeProperty(type=$propertyType, values='$values')"
-    }
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is MultiValueNodeProperty) return false
-
-        if (propertyType != other.propertyType) return false
-        if (values != other.values) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = propertyType.hashCode()
-        result = 31 * result + values.hashCode()
-        return result
-    }
-
+    override fun getType(): NodePropertyType = NodePropertyType.INTEGER
 }

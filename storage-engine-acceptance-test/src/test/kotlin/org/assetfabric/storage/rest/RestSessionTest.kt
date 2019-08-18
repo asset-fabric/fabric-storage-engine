@@ -55,8 +55,8 @@ class RestSessionTest: RestAbstractTest() {
 
             val contentRepresentation = NodeContentRepresentation()
             contentRepresentation.setNodeType(NodeType.UNSTRUCTURED.toString())
-            contentRepresentation.setProperty("booleanProp", NodePropertyType.BOOLEAN, "true")
-            contentRepresentation.setProperty("nodeRef", NodePropertyType.NODE, "/")
+            contentRepresentation.setProperty("booleanProp", BooleanProperty(true))
+            contentRepresentation.setProperty("nodeRef", NodeReferenceProperty("/"))
             val (_, response) = createNode(token, nodePath, contentRepresentation, hashMapOf())
             assertEquals(200, response.statusCode, "Wrong HTTP status code")
         }

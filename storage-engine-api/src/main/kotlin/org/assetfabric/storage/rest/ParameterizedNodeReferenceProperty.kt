@@ -17,39 +17,38 @@
 
 package org.assetfabric.storage.rest
 
-class SingleValueNodeProperty(): NodeProperty() {
+class ParameterizedNodeReferenceProperty(): AbstractScalarNodeProperty() {
 
-    private lateinit var value: String
+    private lateinit var properties: Map<String, NodeProperty>
 
-    constructor (t: NodePropertyType, v: String): this() {
-        this.setType(t)
-        this.setValue(v)
+    constructor(path: String, properties: Map<String, NodeProperty>): this() {
+        this.setValue(path)
+        this.setProperties(properties)
     }
 
-    fun getValue(): String = value
+    override fun getType(): NodePropertyType = NodePropertyType.PARAMETERIZED_NODE
 
-    fun setValue(v: String) {
-        value = v
-    }
+    fun getProperties(): Map<String, NodeProperty> = properties
 
-    override fun toString(): String {
-        return "SingleValueNodeProperty(type=$propertyType, value='$value')"
+    fun setProperties(props: Map<String, NodeProperty>) {
+        properties = props
     }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is SingleValueNodeProperty) return false
+        if (other !is ParameterizedNodeReferenceProperty) return false
+        if (!super.equals(other)) return false
 
-        if (propertyType != other.propertyType) return false
-        if (value != other.value) return false
+        if (properties != other.properties) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = propertyType.hashCode()
-        result = 31 * result + value.hashCode()
+        var result = super.hashCode()
+        result = 31 * result + properties.hashCode()
         return result
     }
+
 
 }

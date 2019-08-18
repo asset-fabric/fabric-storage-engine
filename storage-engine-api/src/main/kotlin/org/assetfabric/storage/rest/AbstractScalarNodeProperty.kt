@@ -17,30 +17,38 @@
 
 package org.assetfabric.storage.rest
 
-enum class NodePropertyType {
+abstract class AbstractScalarNodeProperty(): NodeProperty() {
 
-    /**
-     * A special type of node property that is only used when creating/updating a new node
-     * with a new/updated binary property.
-     */
-    BINARY_INPUT,
+    protected lateinit var _value: String
 
-    INTEGER,
+    constructor (v: String): this() {
+        this.setValue(v)
+    }
 
-    LONG,
+    fun getValue(): String = _value
 
-    STRING,
+    fun setValue(v: String) {
+        _value = v
+    }
 
-    BOOLEAN,
+    override fun toString(): String {
+        return "SingleValueNodeProperty(type=${getType()}, value='$_value')"
+    }
 
-    DATE,
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is AbstractScalarNodeProperty) return false
 
-    NODE,
+        if (getType() != other.getType()) return false
+        if (_value != other._value) return false
 
-    PARAMETERIZED_NODE,
+        return true
+    }
 
-    BINARY,
-
-    DOUBLE
+    override fun hashCode(): Int {
+        var result = getType().hashCode()
+        result = 31 * result + _value.hashCode()
+        return result
+    }
 
 }
