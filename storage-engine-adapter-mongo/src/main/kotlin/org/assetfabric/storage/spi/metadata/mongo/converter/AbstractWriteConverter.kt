@@ -37,28 +37,28 @@ abstract class AbstractWriteConverter {
         return when(value) {
             is BinaryReference -> {
                 val doc = Document()
-                doc.set("type", "BinaryReference")
-                doc.set("path", value.path)
+                doc["type"] = "BinaryReference"
+                doc["path"] = value.path
                 doc
             }
             is TypedList -> {
                 val doc = Document()
-                doc.set("type", "TypedList")
-                doc.set("listType", value.listType.toString())
-                doc.set("values", value.values.map { itemForProperty(it) })
+                doc["type"] = "TypedList"
+                doc["listType"] = value.listType.toString()
+                doc["values"] = value.values.map { itemForProperty(it) }
                 doc
             }
             is ParameterizedNodeReference -> {
                 val doc = Document()
-                doc.set("type", "ParameterizedNodeReference")
-                doc.set("path", value.path)
-                doc.set("properties", documentFromMap(value.properties))
+                doc["type"] = "ParameterizedNodeReference"
+                doc["path"] = value.path
+                doc["properties"] = documentFromMap(value.properties)
                 doc
             }
             is NodeReference -> {
                 val doc = Document()
-                doc.set("type", "NodeReference")
-                doc.set("path", value.path)
+                doc["type"] = "NodeReference"
+                doc["path"] = value.path
                 doc
             }
             else -> value

@@ -21,4 +21,21 @@ package org.assetfabric.storage
  * A [NodeReference] that contains properties which provide additional information about the node relationship.
  * Most property types are supported, but NOT node reference properties or binary properties.
  */
-class ParameterizedNodeReference(path: String, val properties: Map<String, Any>): NodeReference(path)
+class ParameterizedNodeReference(path: String, val properties: Map<String, Any>): NodeReference(path) {
+
+    init {
+        // don't allow complex properties
+        val complexMap = properties.filterValues {
+            it is BinaryReference
+                    || it is ParameterizedNodeReference
+                    || it is NodeReference
+                    || (it is TypedList &&
+                    (it.listType == ListType.PARAMETERIZED_NODE || it.listType == ListType.NODE))
+        }
+        if (complexMap.isNotEmpty()) {
+            throw RuntimeException("Parameterized node references cannot contain complex properties")
+        }
+
+    }
+
+}
