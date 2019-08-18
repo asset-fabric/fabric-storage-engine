@@ -19,7 +19,7 @@ jobs:
 
     environment:
       # Customize the JVM maximum heap limit
-      MAVEN_OPTS: -Xmx2g -XX:+UseG1GC
+      MAVEN_OPTS: "-Xmx2g -XX:+UseG1GC"
 
     steps:
       - checkout
