@@ -32,6 +32,7 @@ import org.springframework.data.mongodb.core.query.Query
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import java.util.regex.Pattern
 
 @Component
 @ConditionalOnProperty("assetfabric.storage.metadata.adapter.type", havingValue = "mongo")
@@ -79,6 +80,16 @@ class MongoWorkingAreaPartitionAdapter: WorkingAreaPartitionAdapter {
         val criteria = Criteria().andOperator(
                 Criteria.where("sessionId").`is`(sessionId),
                 Criteria.where("parentPath").`is`(parentPath.path))
+        query = query.addCriteria(criteria)
+                .with(Sort(Sort.Direction.ASC, "path"))
+        return provider.template.find(query, WorkingAreaNodeRepresentation::class.java, workingAreaCollectionName)
+    }
+
+    override fun nodeDescendantRepresentations(sessionId: String, parentPath: Path): Flux<WorkingAreaNodeRepresentation> {
+        var query = Query()
+        val criteria = Criteria().andOperator(
+                Criteria.where("sessionId").`is`(sessionId),
+                Criteria.where("path").regex(Pattern.compile("^${parentPath.path}.+")))
         query = query.addCriteria(criteria)
                 .with(Sort(Sort.Direction.ASC, "path"))
         return provider.template.find(query, WorkingAreaNodeRepresentation::class.java, workingAreaCollectionName)

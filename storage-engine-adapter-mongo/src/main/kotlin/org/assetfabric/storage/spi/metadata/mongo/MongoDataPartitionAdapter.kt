@@ -40,6 +40,7 @@ import org.springframework.data.mongodb.core.query.Query
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import java.util.regex.Pattern
 
 @Component
 @ConditionalOnProperty("assetfabric.storage.metadata.adapter.type", havingValue = "mongo")
@@ -86,6 +87,19 @@ class MongoDataPartitionAdapter: DataPartitionAdapter {
         val criteria = Criteria().andOperator(
                 Criteria.where("parentPath").`is`(path.path),
                 Criteria.where("revision").lte(revision.toString()))
+        return aggregatedResult(criteria)
+
+    }
+
+    override fun nodeDescendantRepresentations(revision: RevisionNumber, path: Path): Flux<RevisionedNodeRepresentation> {
+        val criteria = Criteria().andOperator(
+                Criteria.where("revision").lte(revision.toString()),
+                Criteria.where("path").regex(Pattern.compile("^${path.path}.+"))
+        )
+        return aggregatedResult(criteria)
+    }
+
+    private fun aggregatedResult(criteria: Criteria): Flux<RevisionedNodeRepresentation> {
         val matchStage = Aggregation.match(criteria)
 
         // sort by path ascending and revision descending (most recent first)

@@ -19,6 +19,7 @@ package org.assetfabric.storage.rest
 
 import io.restassured.RestAssured
 import org.assetfabric.storage.NodeType
+import org.assetfabric.storage.rest.property.types.BooleanProperty
 import org.assetfabric.storage.server.Application
 import org.assetfabric.storage.server.controller.Constants
 import org.assetfabric.storage.server.service.support.DefaultMetadataManagerService
@@ -51,7 +52,7 @@ class RestNodeDeleteTest: RestAbstractTest() {
         val token = getLoginToken()
         val contentRepresentation = NodeContentRepresentation()
         contentRepresentation.setNodeType(NodeType.UNSTRUCTURED.toString())
-        contentRepresentation.setProperty("booleanProp", NodePropertyType.BOOLEAN, "true")
+        contentRepresentation.setProperty("booleanProp", BooleanProperty(true))
         val (_, createResponse) = createNode(token, nodePath, contentRepresentation, hashMapOf())
         assertEquals(200, createResponse.statusCode, "Wrong HTTP status code")
 

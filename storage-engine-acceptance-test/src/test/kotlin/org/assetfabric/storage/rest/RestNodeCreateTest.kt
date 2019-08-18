@@ -20,6 +20,21 @@ package org.assetfabric.storage.rest
 import io.restassured.RestAssured
 import org.apache.logging.log4j.LogManager
 import org.assetfabric.storage.NodeType
+import org.assetfabric.storage.rest.property.types.BinaryInputProperty
+import org.assetfabric.storage.rest.property.types.BooleanListProperty
+import org.assetfabric.storage.rest.property.types.BooleanProperty
+import org.assetfabric.storage.rest.property.types.DateListProperty
+import org.assetfabric.storage.rest.property.types.DateProperty
+import org.assetfabric.storage.rest.property.types.DoubleListProperty
+import org.assetfabric.storage.rest.property.types.DoubleProperty
+import org.assetfabric.storage.rest.property.types.IntegerListProperty
+import org.assetfabric.storage.rest.property.types.IntegerProperty
+import org.assetfabric.storage.rest.property.types.LongListProperty
+import org.assetfabric.storage.rest.property.types.LongProperty
+import org.assetfabric.storage.rest.property.types.NodeReferenceListProperty
+import org.assetfabric.storage.rest.property.types.NodeReferenceProperty
+import org.assetfabric.storage.rest.property.types.StringListProperty
+import org.assetfabric.storage.rest.property.types.StringProperty
 import org.assetfabric.storage.server.Application
 import org.assetfabric.storage.server.service.support.DefaultMetadataManagerService
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -56,18 +71,20 @@ class RestNodeCreateTest: RestAbstractTest() {
 
         val contentRepresentation = NodeContentRepresentation()
         contentRepresentation.setNodeType(NodeType.UNSTRUCTURED.toString())
-        contentRepresentation.setProperty("booleanProp", NodePropertyType.BOOLEAN, "true")
-        contentRepresentation.setProperty("intProp", NodePropertyType.INTEGER, "3")
-        contentRepresentation.setProperty("stringProp", NodePropertyType.STRING, "hello world")
-        contentRepresentation.setProperty("dateProp", NodePropertyType.DATE, "2012-01-03T00:00:00Z")
-        contentRepresentation.setProperty("longProp", NodePropertyType.LONG, "45")
-        contentRepresentation.setProperty("booleanListProp", NodePropertyType.BOOLEAN, listOf("true", "false"))
-        contentRepresentation.setProperty("intListProp", NodePropertyType.INTEGER, listOf("1", "2"))
-        contentRepresentation.setProperty("stringListProp", NodePropertyType.STRING, listOf("A", "B"))
-        contentRepresentation.setProperty("longListProp", NodePropertyType.LONG, listOf("1", "2"))
-        contentRepresentation.setProperty("dateListProp", NodePropertyType.DATE, listOf("2012-01-03T00:00:00Z", "2012-01-03T00:00:00Z"))
-        contentRepresentation.setProperty("nodeRef", NodePropertyType.NODE, "/")
-        contentRepresentation.setProperty("nodeRefList", NodePropertyType.NODE, listOf("/", "/"))
+        contentRepresentation.setProperty("booleanProp", BooleanProperty(true))
+        contentRepresentation.setProperty("intProp", IntegerProperty(3))
+        contentRepresentation.setProperty("stringProp", StringProperty("hello world"))
+        contentRepresentation.setProperty("dateProp", DateProperty("2012-01-03T00:00:00Z"))
+        contentRepresentation.setProperty("longProp", LongProperty(45))
+        contentRepresentation.setProperty("booleanListProp", BooleanListProperty(true, false))
+        contentRepresentation.setProperty("intListProp", IntegerListProperty(1, 2))
+        contentRepresentation.setProperty("stringListProp", StringListProperty("A", "B"))
+        contentRepresentation.setProperty("longListProp", LongListProperty(45, 92))
+        contentRepresentation.setProperty("dateListProp", DateListProperty("2012-01-03T00:00:00Z", "2012-01-03T00:00:00Z"))
+        contentRepresentation.setProperty("nodeRef", NodeReferenceProperty("/"))
+        contentRepresentation.setProperty("nodeRefList", NodeReferenceListProperty("/", "/a"))
+        contentRepresentation.setProperty("doubleProp", DoubleProperty(3.0))
+        contentRepresentation.setProperty("doubleListProp", DoubleListProperty(3.2, 2.6))
 
         val (node, response) = createNode(token, nodePath, contentRepresentation, hashMapOf())
 
@@ -133,9 +150,7 @@ class RestNodeCreateTest: RestAbstractTest() {
 
         val nodeRepresentation = NodeContentRepresentation()
         nodeRepresentation.setNodeType(NodeType.UNSTRUCTURED.toString())
-        val nodeProp = SingleValueNodeProperty()
-        nodeProp.setValue("testfile")
-        nodeProp.setType(NodePropertyType.BINARY_INPUT)
+        val nodeProp = BinaryInputProperty("testfile")
         nodeRepresentation.setProperties(hashMapOf(
                 "binary" to nodeProp
         ))

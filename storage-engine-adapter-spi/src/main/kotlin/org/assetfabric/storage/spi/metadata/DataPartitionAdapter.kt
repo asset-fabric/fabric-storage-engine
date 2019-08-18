@@ -42,9 +42,14 @@ interface DataPartitionAdapter {
     fun nodeRepresentation(revision: RevisionNumber, path: Path): Mono<RevisionedNodeRepresentation>
 
     /**
-     * Returns the representations of the nodes that are children of the node at the given path.
+     * Returns the representations of the nodes that are the immediate children of the node at the given path.
      */
     fun nodeChildRepresentations(revision: RevisionNumber, path: Path): Flux<RevisionedNodeRepresentation>
+
+    /**
+     * Returns the representations of the nodes that are descendants, at any level, of the node at the given path.
+     */
+    fun nodeDescendantRepresentations(revision: RevisionNumber, path: Path): Flux<RevisionedNodeRepresentation>
 
     /**
      * Resets the data partition to its default initial state.

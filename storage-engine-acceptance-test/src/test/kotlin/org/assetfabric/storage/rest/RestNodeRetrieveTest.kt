@@ -25,6 +25,7 @@ import org.assetfabric.storage.NodeType
 import org.assetfabric.storage.Path
 import org.assetfabric.storage.RevisionNumber
 import org.assetfabric.storage.State
+import org.assetfabric.storage.rest.property.AbstractSimpleScalarNodeProperty
 import org.assetfabric.storage.server.Application
 import org.assetfabric.storage.server.controller.Constants.API_TOKEN
 import org.assetfabric.storage.server.service.support.DefaultMetadataManagerService
@@ -35,12 +36,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.context.ApplicationContext
-import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.reactive.server.WebTestClient
 import reactor.core.publisher.Flux
 
@@ -90,8 +87,8 @@ class RestNodeRetrieveTest: RestAbstractTest() {
         assertEquals("node1", retNode.getName())
         assertEquals("/node1", retNode.getPath())
         val retProps = retNode.getProperties()
-        assertEquals("1", (retProps["intProp"] as SingleValueNodeProperty).getValue())
-        assertEquals("string", (retProps["stringProp"] as SingleValueNodeProperty).getValue())
+        assertEquals("1", (retProps["intProp"] as AbstractSimpleScalarNodeProperty).getValue())
+        assertEquals("string", (retProps["stringProp"] as AbstractSimpleScalarNodeProperty).getValue())
     }
 
     @Test

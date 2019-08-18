@@ -29,12 +29,10 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
-import org.springframework.test.context.junit.jupiter.SpringExtension
 import reactor.core.publisher.Flux
 
 @SpringBootTest
@@ -101,6 +99,25 @@ class NodeRetrieveTest: AbstractNodeTest() {
         val rootNode = session.rootNode().block()!!
         val rootChildren = rootNode.children().collectList().block()!!
         assertEquals(2, rootChildren.size, "root node child count mismatch")
+    }
+
+    @Test
+    @DisplayName("should be able to retrieve the descendants of a node from the working area and the committed store")
+    fun retrieveCommittedAndWorkingDescendants() {
+        val session = getSession().block()!!
+
+        dataPartitionAdapter.writeNodeRepresentations(Flux.just(
+                DefaultRevisionedNodeRepresentation(Path("/child1"), RevisionNumber(0), NodeType.UNSTRUCTURED, mutableMapOf(), State.NORMAL),
+                DefaultRevisionedNodeRepresentation(Path("/child1/sub1"), RevisionNumber(0), NodeType.UNSTRUCTURED, mutableMapOf(), State.NORMAL)
+        )).block()
+
+        val content = DefaultNodeContentRepresentation(NodeType.UNSTRUCTURED, mutableMapOf(), State.NORMAL)
+        val wrepr = DefaultWorkingAreaNodeRepresentation(session.getSessionID(), Path("/child2"), NodeType.UNSTRUCTURED, null, content)
+        workingAreaAdapter.createNodeRepresentation(wrepr).block()
+
+        val rootNode = session.rootNode().block()!!
+        val rootChildren = rootNode.descendants().collectList().block()!!
+        assertEquals(3, rootChildren.size, "root node child count mismatch")
     }
 
     @Test

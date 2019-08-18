@@ -17,6 +17,8 @@
 
 package org.assetfabric.storage.rest
 
+import org.assetfabric.storage.rest.property.NodeProperty
+
 /**
  * A RESTful representation of the contents of a node, excluding other details like the node's name, path, etc.
  */
@@ -39,18 +41,8 @@ open class NodeContentRepresentation {
         _properties.putAll(m)
     }
 
-    fun setProperty(name: String, type: NodePropertyType, value: String) {
-        val nodeProperty = SingleValueNodeProperty()
-        nodeProperty.setType(type)
-        nodeProperty.setValue(value)
-        _properties.put(name, nodeProperty)
-    }
-
-    fun setProperty(name: String, type: NodePropertyType, values: List<String>) {
-        val nodeProperty = MultiValueNodeProperty()
-        nodeProperty.setType(type)
-        nodeProperty.setValues(values)
-        _properties.put(name, nodeProperty)
+    fun setProperty(name: String, property: NodeProperty) {
+        _properties.put(name, property)
     }
 
     fun removeProperty(name: String) {

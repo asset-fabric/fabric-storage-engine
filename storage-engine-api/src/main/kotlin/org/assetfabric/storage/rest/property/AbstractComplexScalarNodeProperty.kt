@@ -15,40 +15,42 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.assetfabric.storage.rest
+package org.assetfabric.storage.rest.property
 
-class MultiValueNodeProperty(): NodeProperty() {
+import com.fasterxml.jackson.annotation.JsonIgnore
 
-    private lateinit var values: List<String>
+abstract class AbstractComplexScalarNodeProperty(): ComplexNodeProperty() {
 
-    constructor(t: NodePropertyType, v: List<String>): this() {
-        this.setType(t)
-        this.setValues(v)
+    @JsonIgnore
+    protected lateinit var _value: String
+
+    constructor (v: String): this() {
+        this.setValue(v)
     }
 
-    fun getValues(): List<String> = values
+    fun getValue(): String = _value
 
-    fun setValues(list: List<String>) {
-        values = list
+    fun setValue(v: String) {
+        _value = v
     }
 
     override fun toString(): String {
-        return "MultiValueNodeProperty(type=$propertyType, values='$values')"
+        return "AbstractScalarNodeProperty(type=${getType()}, value='$_value')"
     }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is MultiValueNodeProperty) return false
+        if (other !is AbstractComplexScalarNodeProperty) return false
 
-        if (propertyType != other.propertyType) return false
-        if (values != other.values) return false
+        if (getType() != other.getType()) return false
+        if (_value != other._value) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = propertyType.hashCode()
-        result = 31 * result + values.hashCode()
+        var result = getType().hashCode()
+        result = 31 * result + _value.hashCode()
         return result
     }
 

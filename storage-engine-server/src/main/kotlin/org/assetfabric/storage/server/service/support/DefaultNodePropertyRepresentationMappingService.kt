@@ -21,11 +21,32 @@ import org.assetfabric.storage.BinaryReference
 import org.assetfabric.storage.InputStreamWithLength
 import org.assetfabric.storage.ListType
 import org.assetfabric.storage.NodeReference
+import org.assetfabric.storage.ParameterizedNodeReference
 import org.assetfabric.storage.TypedList
-import org.assetfabric.storage.rest.MultiValueNodeProperty
-import org.assetfabric.storage.rest.NodeProperty
-import org.assetfabric.storage.rest.NodePropertyType
-import org.assetfabric.storage.rest.SingleValueNodeProperty
+import org.assetfabric.storage.rest.property.AbstractComplexListNodeProperty
+import org.assetfabric.storage.rest.property.AbstractComplexScalarNodeProperty
+import org.assetfabric.storage.rest.property.AbstractSimpleListNodeProperty
+import org.assetfabric.storage.rest.property.AbstractSimpleScalarNodeProperty
+import org.assetfabric.storage.rest.property.NodeProperty
+import org.assetfabric.storage.rest.property.NodePropertyType
+import org.assetfabric.storage.rest.property.SimpleNodeProperty
+import org.assetfabric.storage.rest.property.types.BinaryProperty
+import org.assetfabric.storage.rest.property.types.BooleanListProperty
+import org.assetfabric.storage.rest.property.types.BooleanProperty
+import org.assetfabric.storage.rest.property.types.DateListProperty
+import org.assetfabric.storage.rest.property.types.DateProperty
+import org.assetfabric.storage.rest.property.types.DoubleListProperty
+import org.assetfabric.storage.rest.property.types.DoubleProperty
+import org.assetfabric.storage.rest.property.types.IntegerListProperty
+import org.assetfabric.storage.rest.property.types.IntegerProperty
+import org.assetfabric.storage.rest.property.types.LongListProperty
+import org.assetfabric.storage.rest.property.types.LongProperty
+import org.assetfabric.storage.rest.property.types.NodeReferenceListProperty
+import org.assetfabric.storage.rest.property.types.NodeReferenceProperty
+import org.assetfabric.storage.rest.property.types.ParameterizedNodeReferenceListProperty
+import org.assetfabric.storage.rest.property.types.ParameterizedNodeReferenceProperty
+import org.assetfabric.storage.rest.property.types.StringListProperty
+import org.assetfabric.storage.rest.property.types.StringProperty
 import org.assetfabric.storage.server.service.BinaryManagerService
 import org.assetfabric.storage.server.service.NodePropertyRepresentationMappingService
 import org.springframework.beans.factory.annotation.Autowired
@@ -65,27 +86,53 @@ class DefaultNodePropertyRepresentationMappingService: NodePropertyRepresentatio
 
         fun getInternalProp(np: NodeProperty): Any {
             return when(np) {
-                is SingleValueNodeProperty -> when(np.getType()) {
+                is AbstractSimpleScalarNodeProperty -> when(np.getType()) {
                     NodePropertyType.STRING -> np.getValue()
                     NodePropertyType.INTEGER -> np.getValue().toInt()
                     NodePropertyType.LONG -> np.getValue().toLong()
+                    NodePropertyType.DOUBLE -> np.getValue().toDouble()
                     NodePropertyType.BOOLEAN -> np.getValue().toBoolean()
                     NodePropertyType.DATE -> stringToDate(np.getValue())
+
+                    else -> throw RuntimeException("Unknown property type ${np.getType()}")
+                }
+
+                is AbstractComplexScalarNodeProperty -> when(np.getType()) {
                     NodePropertyType.BINARY -> np.getValue()
                     NodePropertyType.BINARY_INPUT -> binaryMap.getValue(np.getValue())
                     NodePropertyType.NODE -> NodeReference(np.getValue())
+                    NodePropertyType.PARAMETERIZED_NODE -> {
+                        val pnpp = np as ParameterizedNodeReferenceProperty
+                        ParameterizedNodeReference(pnpp.getValue(), pnpp.getProperties())
+                    }
                     else -> throw RuntimeException("Unknown property type ${np.getType()}")
                 }
-                is MultiValueNodeProperty -> when (np.getType()) {
-                    NodePropertyType.BOOLEAN -> TypedList(ListType.BOOLEAN, np.getValues().map { it.toBoolean() })
-                    NodePropertyType.DATE -> TypedList(ListType.DATE, np.getValues().map { stringToDate(it) })
-                    NodePropertyType.INTEGER -> TypedList(ListType.INTEGER, np.getValues().map { it.toInt() })
-                    NodePropertyType.LONG -> TypedList(ListType.LONG, np.getValues().map { it.toLong() })
-                    NodePropertyType.STRING -> TypedList(ListType.STRING, np.getValues())
-                    NodePropertyType.NODE -> TypedList(ListType.NODE, np.getValues().map { NodeReference(it) })
+
+                is AbstractSimpleListNodeProperty<*> -> when (np.getType()) {
+                    NodePropertyType.BOOLEAN -> TypedList(ListType.BOOLEAN, np.getValues().map { (it as String).toBoolean() })
+                    NodePropertyType.DATE -> TypedList(ListType.DATE, np.getValues().map { stringToDate(it as String) })
+                    NodePropertyType.INTEGER -> TypedList(ListType.INTEGER, np.getValues().map { (it as String).toInt() })
+                    NodePropertyType.DOUBLE -> TypedList(ListType.DOUBLE, np.getValues().map { (it as String).toDouble() })
+                    NodePropertyType.LONG -> TypedList(ListType.LONG, np.getValues().map { (it as String).toLong() })
+                    NodePropertyType.STRING -> TypedList(ListType.STRING, np.getValues() as List<String>)
                     else -> throw RuntimeException("Unknown property type ${np.getType()}")
-                } else ->
-                    throw RuntimeException("Unknown property $np")
+                }
+
+                is AbstractComplexListNodeProperty<*> -> when(np.getType()) {
+                    NodePropertyType.NODE -> TypedList(ListType.NODE, np.getValues().map { NodeReference(it as String) })
+                    NodePropertyType.PARAMETERIZED_NODE -> {
+                        val pnpp = np as ParameterizedNodeReferenceListProperty
+                        val propList = pnpp.getValues()
+                        val propMapList = propList.map {
+                            val propMap = mutableMapOf("path" to it.getValue(), "properties" to it.getProperties())
+                            propMap
+                        }
+                        TypedList(ListType.PARAMETERIZED_NODE, propMapList)
+                    }
+                    else -> throw RuntimeException("Unknown property type ${np.getType()}")
+                }
+
+                else -> throw RuntimeException("Unknown property $np")
             }
         }
 
@@ -98,48 +145,75 @@ class DefaultNodePropertyRepresentationMappingService: NodePropertyRepresentatio
     override fun getExternalPropertyRepresentation(map: Map<String, Any>): MutableMap<String, NodeProperty> {
         val retMap = HashMap<String, NodeProperty>()
 
-        fun getExternalProp(value: Any): NodeProperty {
-            return when(value) {
-                is String -> SingleValueNodeProperty(NodePropertyType.STRING, value)
-                is Int -> SingleValueNodeProperty(NodePropertyType.INTEGER, value.toString())
-                is Long -> SingleValueNodeProperty(NodePropertyType.LONG, value.toString())
-                is Boolean -> SingleValueNodeProperty(NodePropertyType.BOOLEAN, value.toString())
-                is Date -> SingleValueNodeProperty(NodePropertyType.DATE, dateToString(value))
-                is BinaryReference -> SingleValueNodeProperty(NodePropertyType.BINARY, binaryReferenceToUrl(value).path)
-                is NodeReference -> SingleValueNodeProperty(NodePropertyType.NODE, value.path)
+        fun getExternalProp(value: Any, simplePropertyRequired: Boolean = false): NodeProperty {
+            val retVal = when(value) {
+                is String -> StringProperty(value)
+                is Int -> IntegerProperty(value)
+                is Long -> LongProperty(value)
+                is Double -> DoubleProperty(value)
+                is Boolean -> BooleanProperty(value)
+                is Date -> DateProperty(dateFormat.format(value))
+                is BinaryReference -> BinaryProperty(binaryReferenceToUrl(value).path)
+                is NodeReference -> NodeReferenceProperty(value.path)
                 is TypedList -> {
-                    val nodePropertyType = when(value.listType) {
-                        ListType.BOOLEAN -> NodePropertyType.BOOLEAN
-                        ListType.INTEGER -> NodePropertyType.INTEGER
-                        ListType.DATE -> NodePropertyType.DATE
-                        ListType.NODE -> NodePropertyType.NODE
-                        ListType.LONG -> NodePropertyType.LONG
-                        ListType.STRING -> NodePropertyType.STRING
-                    }
-                    // TODO: convert these values into strings
-                    val propList: List<String> = when(value.values.isEmpty()) {
-                        true -> listOf()
-                        false -> {
-                            when(value.listType) {
-                                ListType.INTEGER -> value.values.map { it.toString() }
-                                ListType.STRING -> value.values.map { it as String }
-                                ListType.BOOLEAN -> value.values.map { it.toString() }
-                                ListType.DATE -> value.values.map { dateToString(it as Date)}
-                                ListType.NODE -> value.values.map { (it as NodeReference).path }
-                                ListType.LONG -> value.values.map { it.toString() }
-                            }
+                    when(value.listType) {
+                        ListType.BOOLEAN -> {
+                            val boolArray = value.values.map { (it as Boolean) }.toBooleanArray()
+                            BooleanListProperty(*boolArray)
+                        }
+                        ListType.INTEGER -> {
+                            val intArray = value.values.map { (it as Integer) }.toTypedArray()
+                            IntegerListProperty(*intArray)
+                        }
+                        ListType.LONG -> {
+                            val longArray = value.values.map { (it as Long) }.toLongArray()
+                            LongListProperty(*longArray)
+                        }
+                        ListType.DOUBLE -> {
+                            val doubleArray = value.values.map { (it as Double) }.toDoubleArray()
+                            DoubleListProperty(*doubleArray)
+                        }
+                        ListType.DATE -> {
+                            val dateArray = value.values.map { dateToString(it as Date) }.toTypedArray()
+                            DateListProperty(*dateArray)
+                        }
+                        ListType.STRING -> {
+                            val strArray = value.values.map { it as String }.toTypedArray()
+                            StringListProperty(*strArray)
+                        }
+                        ListType.NODE -> {
+                            val pathArray = value.values.map { (it as NodeReference).path }.toTypedArray()
+                            NodeReferenceListProperty(*pathArray)
+                        }
+                        ListType.PARAMETERIZED_NODE -> {
+                            val mapArray = value.values.map {
+                                val inMap = it as Map<*, *>
+                                val path = inMap["path"] as String
+                                val props = inMap["properties"] as Map<String, Any>
+                                val mappedProps = props.mapValues { getExternalProp(it, true) as SimpleNodeProperty }
+                                ParameterizedNodeReferenceProperty(path, mappedProps)
+                            }.toTypedArray()
+                            ParameterizedNodeReferenceListProperty(*mapArray)
                         }
                     }
-                    MultiValueNodeProperty(nodePropertyType, propList)
                 }
                 else -> {
                     throw RuntimeException("Not implemented for type ${value::class.java}")
                 }
             }
+            if (simplePropertyRequired) {
+                if (retVal is SimpleNodeProperty) {
+                    return retVal
+                } else {
+                    throw RuntimeException("Cannot return complex node type " + retVal.javaClass);
+                }
+            } else {
+                return retVal
+            }
         }
 
         for (entry in map) {
-            retMap.put(entry.key, getExternalProp(entry.value))
+            retMap[entry.key] = getExternalProp(entry.value)
         }
 
         return retMap

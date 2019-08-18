@@ -42,11 +42,18 @@ interface WorkingAreaPartitionAdapter {
     fun nodeRepresentation(sessionId: String, path: Path): Mono<WorkingAreaNodeRepresentation>
 
     /**
-     * Returns the working nodes of the child nodes for the given session and path.
+     * Returns the working nodes of the immediate child nodes for the given session and path.
      * @param sessionId the session ID for which the representations should be retrieved
      * @param parentPath the path of the node whose children should be returned
      */
     fun nodeChildRepresentations(sessionId: String, parentPath: Path): Flux<WorkingAreaNodeRepresentation>
+
+    /**
+     * Returns the working nodes of the descendant child nodes, at any level, for the given session and path.
+     * @param sessionId the session ID for which the representations should be retrieved
+     * @param parentPath the path of the node whose children should be returned
+     */
+    fun nodeDescendantRepresentations(sessionId: String, parentPath: Path): Flux<WorkingAreaNodeRepresentation>
 
     /**
      * Returns a stream of working area node representations for the given session.

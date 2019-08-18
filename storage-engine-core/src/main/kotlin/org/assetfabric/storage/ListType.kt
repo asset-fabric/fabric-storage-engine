@@ -29,6 +29,10 @@ enum class ListType {
 
     NODE,
 
-    STRING
+    PARAMETERIZED_NODE,
+
+    STRING,
+
+    DOUBLE
 
 }

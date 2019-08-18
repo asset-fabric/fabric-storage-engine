@@ -19,6 +19,8 @@ package org.assetfabric.storage.rest
 
 import io.restassured.RestAssured
 import org.assetfabric.storage.NodeType
+import org.assetfabric.storage.rest.property.types.BooleanProperty
+import org.assetfabric.storage.rest.property.types.NodeReferenceProperty
 import org.assetfabric.storage.server.Application
 import org.assetfabric.storage.server.controller.Constants.API_TOKEN
 import org.assetfabric.storage.server.service.support.DefaultMetadataManagerService
@@ -55,8 +57,8 @@ class RestSessionTest: RestAbstractTest() {
 
             val contentRepresentation = NodeContentRepresentation()
             contentRepresentation.setNodeType(NodeType.UNSTRUCTURED.toString())
-            contentRepresentation.setProperty("booleanProp", NodePropertyType.BOOLEAN, "true")
-            contentRepresentation.setProperty("nodeRef", NodePropertyType.NODE, "/")
+            contentRepresentation.setProperty("booleanProp", BooleanProperty(true))
+            contentRepresentation.setProperty("nodeRef", NodeReferenceProperty("/"))
             val (_, response) = createNode(token, nodePath, contentRepresentation, hashMapOf())
             assertEquals(200, response.statusCode, "Wrong HTTP status code")
         }

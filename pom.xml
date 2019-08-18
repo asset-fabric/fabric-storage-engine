@@ -24,7 +24,7 @@
     <groupId>org.assetfabric</groupId>
     <artifactId>storage-engine</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.0.2-SNAPSHOT</version>
+    <version>0.0.4-SNAPSHOT</version>
 
     <modules>
         <module>storage-engine-api</module>
@@ -208,14 +208,14 @@
             </plugin>
 
             <plugin>
-                <groupId>org.sonarsource.scanner.maven</groupId>
-                <artifactId>sonar-maven-plugin</artifactId>
-                <version>${sonar-maven-plugin.version}</version>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
                 <executions>
                     <execution>
-                        <phase>deploy</phase>
+                        <id>attach-sources</id>
                         <goals>
-                            <goal>sonar</goal>
+                            <goal>jar</goal>
+                            <goal>test-jar</goal>
                         </goals>
                     </execution>
                 </executions>
@@ -258,11 +258,12 @@
                         </goals>
                         <configuration>
                             <publisher>
-                                <contextUrl>https://assetfabric.jfrog.io/assetfabric</contextUrl>
+                                <contextUrl>https://oss.jfrog.org</contextUrl>
                                 <username>${ARTIFACTORY_USERNAME}</username>
                                 <password>${ARTIFACTORY_PASSWORD}</password>
-                                <repoKey>libs-release</repoKey>
-                                <snapshotRepoKey>libs-snapshot</snapshotRepoKey>
+                                <repoKey>oss-release-local</repoKey>
+                                <snapshotRepoKey>oss-snapshot-local</snapshotRepoKey>
+                                <publishBuildInfo>false</publishBuildInfo>
                             </publisher>
                         </configuration>
                     </execution>
@@ -286,7 +287,7 @@
         <profile>
             <id>sonar</id>
             <activation>
-                <activeByDefault>true</activeByDefault>
+                <activeByDefault>false</activeByDefault>
             </activation>
             <properties>
                 <!-- Optional URL to server. Default value is http://localhost:9000 -->
@@ -294,6 +295,23 @@
                 <sonar.organization>asset-fabric</sonar.organization>
                 <sonar.login>${SONARCLOUD_API_KEY}</sonar.login>
             </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.sonarsource.scanner.maven</groupId>
+                        <artifactId>sonar-maven-plugin</artifactId>
+                        <version>${sonar-maven-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <phase>deploy</phase>
+                                <goals>
+                                    <goal>sonar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 
@@ -320,6 +338,5 @@
             <url>https://jcenter.bintray.com/</url>
         </pluginRepository>
     </pluginRepositories>
-
 
 </project>

@@ -15,40 +15,42 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.assetfabric.storage.rest
+package org.assetfabric.storage.rest.property
 
-class SingleValueNodeProperty(): NodeProperty() {
+import com.fasterxml.jackson.annotation.JsonIgnore
 
-    private lateinit var value: String
+abstract class AbstractSimpleListNodeProperty<T>(): SimpleNodeProperty() {
 
-    constructor (t: NodePropertyType, v: String): this() {
-        this.setType(t)
-        this.setValue(v)
+    @JsonIgnore
+    protected lateinit var vals: List<T>
+
+    constructor(v: List<T>): this() {
+        this.setValues(v)
     }
 
-    fun getValue(): String = value
+    fun getValues(): List<T> = vals
 
-    fun setValue(v: String) {
-        value = v
+    fun setValues(list: List<T>) {
+        vals = list
     }
 
     override fun toString(): String {
-        return "SingleValueNodeProperty(type=$propertyType, value='$value')"
+        return "AbstractListNodeProperty(type=${getType()}, values='$vals')"
     }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is SingleValueNodeProperty) return false
+        if (other !is AbstractSimpleListNodeProperty<*>) return false
 
-        if (propertyType != other.propertyType) return false
-        if (value != other.value) return false
+        if (getType() != other.getType()) return false
+        if (vals != other.vals) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = propertyType.hashCode()
-        result = 31 * result + value.hashCode()
+        var result = getType().hashCode()
+        result = 31 * result + vals.hashCode()
         return result
     }
 

@@ -15,28 +15,16 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.assetfabric.storage.rest
+package org.assetfabric.storage.rest.property.types
 
-import com.fasterxml.jackson.annotation.JsonSubTypes
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type
-import com.fasterxml.jackson.annotation.JsonTypeInfo
+import org.assetfabric.storage.rest.property.AbstractSimpleScalarNodeProperty
+import org.assetfabric.storage.rest.property.NodePropertyType
 
-@JsonTypeInfo(
-        use = JsonTypeInfo.Id.NAME,
-        include = JsonTypeInfo.As.PROPERTY,
-        property = "arity")
-@JsonSubTypes(
-    Type(value = SingleValueNodeProperty::class, name = "single"),
-    Type(value = MultiValueNodeProperty::class, name = "multi")
-)
-abstract class NodeProperty {
+class DateProperty(): AbstractSimpleScalarNodeProperty() {
 
-    protected lateinit var propertyType: NodePropertyType
-
-    fun getType(): NodePropertyType = propertyType
-
-    fun setType(t: NodePropertyType) {
-        propertyType = t
+    constructor(date: String): this() {
+        this.setValue(date)
     }
 
+    override fun getType(): NodePropertyType = NodePropertyType.DATE
 }

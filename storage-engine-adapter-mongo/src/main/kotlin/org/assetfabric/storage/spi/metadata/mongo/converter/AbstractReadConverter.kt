@@ -20,6 +20,7 @@ package org.assetfabric.storage.spi.metadata.mongo.converter
 import org.assetfabric.storage.BinaryReference
 import org.assetfabric.storage.ListType
 import org.assetfabric.storage.NodeReference
+import org.assetfabric.storage.ParameterizedNodeReference
 import org.assetfabric.storage.TypedList
 import org.bson.Document
 
@@ -61,6 +62,9 @@ abstract class AbstractReadConverter {
         val type = doc.getString("type")
         return when (type) {
             "BinaryReference" -> BinaryReference(doc.getString("path"))
+            "ParameterizedNodeReference" -> {
+                ParameterizedNodeReference(doc.getString("path"), mapFromDocument(doc["properties"] as Document))
+            }
             "NodeReference" -> {
                 NodeReference(doc.getString("path"))
             }

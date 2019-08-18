@@ -15,28 +15,16 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.assetfabric.storage.rest
+package org.assetfabric.storage.rest.property.types
 
-enum class NodePropertyType {
+import org.assetfabric.storage.rest.property.AbstractComplexListNodeProperty
+import org.assetfabric.storage.rest.property.NodePropertyType
 
-    /**
-     * A special type of node property that is only used when creating/updating a new node
-     * with a new/updated binary property.
-     */
-    BINARY_INPUT,
+class NodeReferenceListProperty(): AbstractComplexListNodeProperty<String>() {
 
-    INTEGER,
+    constructor(vararg vals: String): this() {
+        this.setValues(vals.toList())
+    }
 
-    LONG,
-
-    STRING,
-
-    BOOLEAN,
-
-    DATE,
-
-    NODE,
-
-    BINARY
-
+    override fun getType(): NodePropertyType = NodePropertyType.NODE
 }
