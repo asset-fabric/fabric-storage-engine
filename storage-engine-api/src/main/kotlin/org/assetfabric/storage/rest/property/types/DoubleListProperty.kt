@@ -15,9 +15,12 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.assetfabric.storage.rest
+package org.assetfabric.storage.rest.property.types
 
-class DoubleListProperty(): AbstractListNodeProperty<String>() {
+import org.assetfabric.storage.rest.property.AbstractSimpleListNodeProperty
+import org.assetfabric.storage.rest.property.NodePropertyType
+
+class DoubleListProperty(): AbstractSimpleListNodeProperty<String>() {
 
     constructor(vararg vals: Double): this() {
         this.setValues(vals.map { it.toString() })

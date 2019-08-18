@@ -15,32 +15,16 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.assetfabric.storage.rest
+package org.assetfabric.storage.rest.property.types
 
-enum class NodePropertyType {
+import org.assetfabric.storage.rest.property.AbstractSimpleScalarNodeProperty
+import org.assetfabric.storage.rest.property.NodePropertyType
 
-    /**
-     * A special type of node property that is only used when creating/updating a new node
-     * with a new/updated binary property.
-     */
-    BINARY_INPUT,
+class DateProperty(): AbstractSimpleScalarNodeProperty() {
 
-    INTEGER,
+    constructor(date: String): this() {
+        this.setValue(date)
+    }
 
-    LONG,
-
-    STRING,
-
-    BOOLEAN,
-
-    DATE,
-
-    NODE,
-
-    PARAMETERIZED_NODE,
-
-    BINARY,
-
-    DOUBLE
-
+    override fun getType(): NodePropertyType = NodePropertyType.DATE
 }

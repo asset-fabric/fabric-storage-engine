@@ -15,13 +15,12 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.assetfabric.storage.rest
+package org.assetfabric.storage.rest.property.types
 
-class BooleanListProperty(): AbstractListNodeProperty<String>() {
+import org.assetfabric.storage.rest.property.AbstractComplexListNodeProperty
+import org.assetfabric.storage.rest.property.NodePropertyType
 
-    constructor(vararg vals: Boolean): this() {
-        this.setValues(vals.map { it.toString() })
-    }
+class BinaryListProperty: AbstractComplexListNodeProperty<String>() {
 
-    override fun getType(): NodePropertyType = NodePropertyType.BOOLEAN
+    override fun getType(): NodePropertyType = NodePropertyType.BINARY
 }

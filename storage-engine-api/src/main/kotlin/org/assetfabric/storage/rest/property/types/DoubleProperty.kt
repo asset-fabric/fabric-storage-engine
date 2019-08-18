@@ -15,13 +15,16 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.assetfabric.storage.rest
+package org.assetfabric.storage.rest.property.types
 
-class IntegerProperty(): AbstractScalarNodeProperty() {
+import org.assetfabric.storage.rest.property.AbstractSimpleScalarNodeProperty
+import org.assetfabric.storage.rest.property.NodePropertyType
 
-    constructor(value: Int): this() {
-        setValue(value.toString())
+class DoubleProperty(): AbstractSimpleScalarNodeProperty() {
+
+    constructor(value: Double): this() {
+        this.setValue(value.toString())
     }
 
-    override fun getType(): NodePropertyType = NodePropertyType.INTEGER
+    override fun getType(): NodePropertyType = NodePropertyType.DOUBLE
 }

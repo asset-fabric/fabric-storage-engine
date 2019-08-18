@@ -15,9 +15,16 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.assetfabric.storage.rest
+package org.assetfabric.storage.rest.property.types
 
-class BinaryListProperty: AbstractListNodeProperty<String>() {
+import org.assetfabric.storage.rest.property.AbstractComplexScalarNodeProperty
+import org.assetfabric.storage.rest.property.NodePropertyType
+
+class BinaryProperty(): AbstractComplexScalarNodeProperty() {
+
+    constructor(value: String): this() {
+        this.setValue(value)
+    }
 
     override fun getType(): NodePropertyType = NodePropertyType.BINARY
 }

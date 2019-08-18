@@ -15,40 +15,43 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.assetfabric.storage.rest
+package org.assetfabric.storage.rest.property
 
-class ParameterizedNodeReferenceProperty(): AbstractScalarNodeProperty() {
+import com.fasterxml.jackson.annotation.JsonIgnore
 
-    private lateinit var properties: Map<String, NodeProperty>
+abstract class AbstractSimpleListNodeProperty<T>(): SimpleNodeProperty() {
 
-    constructor(path: String, properties: Map<String, NodeProperty>): this() {
-        this.setValue(path)
-        this.setProperties(properties)
+    @JsonIgnore
+    protected lateinit var vals: List<T>
+
+    constructor(v: List<T>): this() {
+        this.setValues(v)
     }
 
-    override fun getType(): NodePropertyType = NodePropertyType.PARAMETERIZED_NODE
+    fun getValues(): List<T> = vals
 
-    fun getProperties(): Map<String, NodeProperty> = properties
+    fun setValues(list: List<T>) {
+        vals = list
+    }
 
-    fun setProperties(props: Map<String, NodeProperty>) {
-        properties = props
+    override fun toString(): String {
+        return "AbstractListNodeProperty(type=${getType()}, values='$vals')"
     }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is ParameterizedNodeReferenceProperty) return false
-        if (!super.equals(other)) return false
+        if (other !is AbstractSimpleListNodeProperty<*>) return false
 
-        if (properties != other.properties) return false
+        if (getType() != other.getType()) return false
+        if (vals != other.vals) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = super.hashCode()
-        result = 31 * result + properties.hashCode()
+        var result = getType().hashCode()
+        result = 31 * result + vals.hashCode()
         return result
     }
-
 
 }

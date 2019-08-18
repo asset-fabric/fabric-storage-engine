@@ -15,13 +15,6 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.assetfabric.storage.rest
+package org.assetfabric.storage.rest.property
 
-class NodeReferenceListProperty(): AbstractListNodeProperty<String>() {
-
-    constructor(vararg vals: String): this() {
-        this.setValues(vals.toList())
-    }
-
-    override fun getType(): NodePropertyType = NodePropertyType.NODE
-}
+abstract class ComplexNodeProperty(): NodeProperty()

@@ -15,13 +15,16 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.assetfabric.storage.rest
+package org.assetfabric.storage.rest.property.types
 
-class DateListProperty(): AbstractListNodeProperty<String>() {
+import org.assetfabric.storage.rest.property.AbstractSimpleScalarNodeProperty
+import org.assetfabric.storage.rest.property.NodePropertyType
 
-    constructor(vararg vals: String): this() {
-        this.setValues(vals.toList())
+class StringProperty(): AbstractSimpleScalarNodeProperty() {
+
+    constructor(value: String): this() {
+        this.setValue(value)
     }
 
-    override fun getType(): NodePropertyType = NodePropertyType.DATE
+    override fun getType(): NodePropertyType = NodePropertyType.STRING
 }

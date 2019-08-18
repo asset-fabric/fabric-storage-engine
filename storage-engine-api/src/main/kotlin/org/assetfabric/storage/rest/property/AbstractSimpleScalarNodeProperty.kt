@@ -15,10 +15,13 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.assetfabric.storage.rest
+package org.assetfabric.storage.rest.property
 
-abstract class AbstractScalarNodeProperty(): NodeProperty() {
+import com.fasterxml.jackson.annotation.JsonIgnore
 
+abstract class AbstractSimpleScalarNodeProperty(): SimpleNodeProperty() {
+
+    @JsonIgnore
     protected lateinit var _value: String
 
     constructor (v: String): this() {
@@ -32,12 +35,12 @@ abstract class AbstractScalarNodeProperty(): NodeProperty() {
     }
 
     override fun toString(): String {
-        return "SingleValueNodeProperty(type=${getType()}, value='$_value')"
+        return "AbstractScalarNodeProperty(type=${getType()}, value='$_value')"
     }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is AbstractScalarNodeProperty) return false
+        if (other !is AbstractSimpleScalarNodeProperty) return false
 
         if (getType() != other.getType()) return false
         if (_value != other._value) return false

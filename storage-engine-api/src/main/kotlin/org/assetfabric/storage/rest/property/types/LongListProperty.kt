@@ -15,12 +15,15 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.assetfabric.storage.rest
+package org.assetfabric.storage.rest.property.types
 
-class LongProperty(): AbstractScalarNodeProperty() {
+import org.assetfabric.storage.rest.property.AbstractSimpleListNodeProperty
+import org.assetfabric.storage.rest.property.NodePropertyType
 
-    constructor(value: Long): this() {
-        this.setValue(value.toString())
+class LongListProperty(): AbstractSimpleListNodeProperty<String>() {
+
+    constructor(vararg vals: Long): this() {
+        this.setValues(vals.map { it.toString() })
     }
 
     override fun getType(): NodePropertyType = NodePropertyType.LONG

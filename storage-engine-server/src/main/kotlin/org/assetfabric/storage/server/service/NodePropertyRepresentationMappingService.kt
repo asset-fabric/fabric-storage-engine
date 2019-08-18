@@ -18,7 +18,7 @@
 package org.assetfabric.storage.server.service
 
 import org.assetfabric.storage.InputStreamWithLength
-import org.assetfabric.storage.rest.NodeProperty
+import org.assetfabric.storage.rest.property.NodeProperty
 
 /**
  * Converts between the externally-visible REST representation and the internally-used,

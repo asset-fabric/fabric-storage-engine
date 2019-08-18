@@ -15,39 +15,42 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.assetfabric.storage.rest
+package org.assetfabric.storage.rest.property
 
-abstract class AbstractListNodeProperty<T>(): NodeProperty() {
+import com.fasterxml.jackson.annotation.JsonIgnore
 
-    protected lateinit var vals: List<T>
+abstract class AbstractComplexScalarNodeProperty(): ComplexNodeProperty() {
 
-    constructor(v: List<T>): this() {
-        this.setValues(v)
+    @JsonIgnore
+    protected lateinit var _value: String
+
+    constructor (v: String): this() {
+        this.setValue(v)
     }
 
-    fun getValues(): List<T> = vals
+    fun getValue(): String = _value
 
-    fun setValues(list: List<T>) {
-        vals = list
+    fun setValue(v: String) {
+        _value = v
     }
 
     override fun toString(): String {
-        return "MultiValueNodeProperty(type=${getType()}, values='$vals')"
+        return "AbstractScalarNodeProperty(type=${getType()}, value='$_value')"
     }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is AbstractListNodeProperty<*>) return false
+        if (other !is AbstractComplexScalarNodeProperty) return false
 
         if (getType() != other.getType()) return false
-        if (vals != other.vals) return false
+        if (_value != other._value) return false
 
         return true
     }
 
     override fun hashCode(): Int {
         var result = getType().hashCode()
-        result = 31 * result + vals.hashCode()
+        result = 31 * result + _value.hashCode()
         return result
     }
 

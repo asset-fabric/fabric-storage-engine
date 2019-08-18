@@ -15,13 +15,16 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.assetfabric.storage.rest
+package org.assetfabric.storage.rest.property.types
 
-class BooleanProperty(): AbstractScalarNodeProperty() {
+import org.assetfabric.storage.rest.property.AbstractSimpleScalarNodeProperty
+import org.assetfabric.storage.rest.property.NodePropertyType
 
-    constructor(value: Boolean): this() {
-        this.setValue(value.toString())
+class IntegerProperty(): AbstractSimpleScalarNodeProperty() {
+
+    constructor(value: Int): this() {
+        setValue(value.toString())
     }
 
-    override fun getType(): NodePropertyType = NodePropertyType.BOOLEAN
+    override fun getType(): NodePropertyType = NodePropertyType.INTEGER
 }

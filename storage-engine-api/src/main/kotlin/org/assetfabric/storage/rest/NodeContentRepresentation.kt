@@ -17,6 +17,8 @@
 
 package org.assetfabric.storage.rest
 
+import org.assetfabric.storage.rest.property.NodeProperty
+
 /**
  * A RESTful representation of the contents of a node, excluding other details like the node's name, path, etc.
  */

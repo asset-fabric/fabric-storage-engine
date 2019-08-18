@@ -15,14 +15,16 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.assetfabric.storage.rest
+package org.assetfabric.storage.rest.property.types
 
-class ParameterizedNodeReferenceListProperty(): AbstractListNodeProperty<ParameterizedNodeReferenceProperty>() {
+import org.assetfabric.storage.rest.property.AbstractComplexScalarNodeProperty
+import org.assetfabric.storage.rest.property.NodePropertyType
 
-    constructor(vararg nodes: ParameterizedNodeReferenceProperty): this() {
-        this.setValues(nodes.toList())
+class NodeReferenceProperty(): AbstractComplexScalarNodeProperty() {
+
+    constructor(path: String): this() {
+        this.setValue(path)
     }
 
-    override fun getType(): NodePropertyType = NodePropertyType.PARAMETERIZED_NODE
-
+    override fun getType(): NodePropertyType = NodePropertyType.NODE
 }

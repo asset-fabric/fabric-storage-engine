@@ -23,27 +23,30 @@ import org.assetfabric.storage.ListType
 import org.assetfabric.storage.NodeReference
 import org.assetfabric.storage.ParameterizedNodeReference
 import org.assetfabric.storage.TypedList
-import org.assetfabric.storage.rest.AbstractListNodeProperty
-import org.assetfabric.storage.rest.AbstractScalarNodeProperty
-import org.assetfabric.storage.rest.BinaryProperty
-import org.assetfabric.storage.rest.BooleanListProperty
-import org.assetfabric.storage.rest.BooleanProperty
-import org.assetfabric.storage.rest.DateListProperty
-import org.assetfabric.storage.rest.DateProperty
-import org.assetfabric.storage.rest.DoubleListProperty
-import org.assetfabric.storage.rest.DoubleProperty
-import org.assetfabric.storage.rest.IntegerListProperty
-import org.assetfabric.storage.rest.IntegerProperty
-import org.assetfabric.storage.rest.LongListProperty
-import org.assetfabric.storage.rest.LongProperty
-import org.assetfabric.storage.rest.NodeProperty
-import org.assetfabric.storage.rest.NodePropertyType
-import org.assetfabric.storage.rest.NodeReferenceListProperty
-import org.assetfabric.storage.rest.NodeReferenceProperty
-import org.assetfabric.storage.rest.ParameterizedNodeReferenceListProperty
-import org.assetfabric.storage.rest.ParameterizedNodeReferenceProperty
-import org.assetfabric.storage.rest.StringListProperty
-import org.assetfabric.storage.rest.StringProperty
+import org.assetfabric.storage.rest.property.AbstractComplexListNodeProperty
+import org.assetfabric.storage.rest.property.AbstractComplexScalarNodeProperty
+import org.assetfabric.storage.rest.property.AbstractSimpleListNodeProperty
+import org.assetfabric.storage.rest.property.AbstractSimpleScalarNodeProperty
+import org.assetfabric.storage.rest.property.NodeProperty
+import org.assetfabric.storage.rest.property.NodePropertyType
+import org.assetfabric.storage.rest.property.SimpleNodeProperty
+import org.assetfabric.storage.rest.property.types.BinaryProperty
+import org.assetfabric.storage.rest.property.types.BooleanListProperty
+import org.assetfabric.storage.rest.property.types.BooleanProperty
+import org.assetfabric.storage.rest.property.types.DateListProperty
+import org.assetfabric.storage.rest.property.types.DateProperty
+import org.assetfabric.storage.rest.property.types.DoubleListProperty
+import org.assetfabric.storage.rest.property.types.DoubleProperty
+import org.assetfabric.storage.rest.property.types.IntegerListProperty
+import org.assetfabric.storage.rest.property.types.IntegerProperty
+import org.assetfabric.storage.rest.property.types.LongListProperty
+import org.assetfabric.storage.rest.property.types.LongProperty
+import org.assetfabric.storage.rest.property.types.NodeReferenceListProperty
+import org.assetfabric.storage.rest.property.types.NodeReferenceProperty
+import org.assetfabric.storage.rest.property.types.ParameterizedNodeReferenceListProperty
+import org.assetfabric.storage.rest.property.types.ParameterizedNodeReferenceProperty
+import org.assetfabric.storage.rest.property.types.StringListProperty
+import org.assetfabric.storage.rest.property.types.StringProperty
 import org.assetfabric.storage.server.service.BinaryManagerService
 import org.assetfabric.storage.server.service.NodePropertyRepresentationMappingService
 import org.springframework.beans.factory.annotation.Autowired
@@ -83,13 +86,18 @@ class DefaultNodePropertyRepresentationMappingService: NodePropertyRepresentatio
 
         fun getInternalProp(np: NodeProperty): Any {
             return when(np) {
-                is AbstractScalarNodeProperty -> when(np.getType()) {
+                is AbstractSimpleScalarNodeProperty -> when(np.getType()) {
                     NodePropertyType.STRING -> np.getValue()
                     NodePropertyType.INTEGER -> np.getValue().toInt()
                     NodePropertyType.LONG -> np.getValue().toLong()
                     NodePropertyType.DOUBLE -> np.getValue().toDouble()
                     NodePropertyType.BOOLEAN -> np.getValue().toBoolean()
                     NodePropertyType.DATE -> stringToDate(np.getValue())
+
+                    else -> throw RuntimeException("Unknown property type ${np.getType()}")
+                }
+
+                is AbstractComplexScalarNodeProperty -> when(np.getType()) {
                     NodePropertyType.BINARY -> np.getValue()
                     NodePropertyType.BINARY_INPUT -> binaryMap.getValue(np.getValue())
                     NodePropertyType.NODE -> NodeReference(np.getValue())
@@ -99,13 +107,18 @@ class DefaultNodePropertyRepresentationMappingService: NodePropertyRepresentatio
                     }
                     else -> throw RuntimeException("Unknown property type ${np.getType()}")
                 }
-                is AbstractListNodeProperty<*> -> when (np.getType()) {
+
+                is AbstractSimpleListNodeProperty<*> -> when (np.getType()) {
                     NodePropertyType.BOOLEAN -> TypedList(ListType.BOOLEAN, np.getValues().map { (it as String).toBoolean() })
                     NodePropertyType.DATE -> TypedList(ListType.DATE, np.getValues().map { stringToDate(it as String) })
                     NodePropertyType.INTEGER -> TypedList(ListType.INTEGER, np.getValues().map { (it as String).toInt() })
                     NodePropertyType.DOUBLE -> TypedList(ListType.DOUBLE, np.getValues().map { (it as String).toDouble() })
                     NodePropertyType.LONG -> TypedList(ListType.LONG, np.getValues().map { (it as String).toLong() })
                     NodePropertyType.STRING -> TypedList(ListType.STRING, np.getValues() as List<String>)
+                    else -> throw RuntimeException("Unknown property type ${np.getType()}")
+                }
+
+                is AbstractComplexListNodeProperty<*> -> when(np.getType()) {
                     NodePropertyType.NODE -> TypedList(ListType.NODE, np.getValues().map { NodeReference(it as String) })
                     NodePropertyType.PARAMETERIZED_NODE -> {
                         val pnpp = np as ParameterizedNodeReferenceListProperty
@@ -117,8 +130,9 @@ class DefaultNodePropertyRepresentationMappingService: NodePropertyRepresentatio
                         TypedList(ListType.PARAMETERIZED_NODE, propMapList)
                     }
                     else -> throw RuntimeException("Unknown property type ${np.getType()}")
-                } else ->
-                    throw RuntimeException("Unknown property $np")
+                }
+
+                else -> throw RuntimeException("Unknown property $np")
             }
         }
 
@@ -131,8 +145,8 @@ class DefaultNodePropertyRepresentationMappingService: NodePropertyRepresentatio
     override fun getExternalPropertyRepresentation(map: Map<String, Any>): MutableMap<String, NodeProperty> {
         val retMap = HashMap<String, NodeProperty>()
 
-        fun getExternalProp(value: Any): NodeProperty {
-            return when(value) {
+        fun getExternalProp(value: Any, simplePropertyRequired: Boolean = false): NodeProperty {
+            val retVal = when(value) {
                 is String -> StringProperty(value)
                 is Int -> IntegerProperty(value)
                 is Long -> LongProperty(value)
@@ -176,7 +190,7 @@ class DefaultNodePropertyRepresentationMappingService: NodePropertyRepresentatio
                                 val inMap = it as Map<*, *>
                                 val path = inMap["path"] as String
                                 val props = inMap["properties"] as Map<String, Any>
-                                val mappedProps = props.mapValues { getExternalProp(it) }
+                                val mappedProps = props.mapValues { getExternalProp(it, true) as SimpleNodeProperty }
                                 ParameterizedNodeReferenceProperty(path, mappedProps)
                             }.toTypedArray()
                             ParameterizedNodeReferenceListProperty(*mapArray)
@@ -186,6 +200,15 @@ class DefaultNodePropertyRepresentationMappingService: NodePropertyRepresentatio
                 else -> {
                     throw RuntimeException("Not implemented for type ${value::class.java}")
                 }
+            }
+            if (simplePropertyRequired) {
+                if (retVal is SimpleNodeProperty) {
+                    return retVal
+                } else {
+                    throw RuntimeException("Cannot return complex node type " + retVal.javaClass);
+                }
+            } else {
+                return retVal
             }
         }
 

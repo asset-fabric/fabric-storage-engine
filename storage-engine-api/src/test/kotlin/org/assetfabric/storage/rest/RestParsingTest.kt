@@ -18,6 +18,24 @@
 package org.assetfabric.storage.rest
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.assetfabric.storage.rest.property.types.BinaryListProperty
+import org.assetfabric.storage.rest.property.types.BinaryProperty
+import org.assetfabric.storage.rest.property.types.BooleanListProperty
+import org.assetfabric.storage.rest.property.types.BooleanProperty
+import org.assetfabric.storage.rest.property.types.DateListProperty
+import org.assetfabric.storage.rest.property.types.DateProperty
+import org.assetfabric.storage.rest.property.types.DoubleListProperty
+import org.assetfabric.storage.rest.property.types.DoubleProperty
+import org.assetfabric.storage.rest.property.types.IntegerListProperty
+import org.assetfabric.storage.rest.property.types.IntegerProperty
+import org.assetfabric.storage.rest.property.types.LongListProperty
+import org.assetfabric.storage.rest.property.types.LongProperty
+import org.assetfabric.storage.rest.property.types.NodeReferenceListProperty
+import org.assetfabric.storage.rest.property.types.NodeReferenceProperty
+import org.assetfabric.storage.rest.property.types.ParameterizedNodeReferenceListProperty
+import org.assetfabric.storage.rest.property.types.ParameterizedNodeReferenceProperty
+import org.assetfabric.storage.rest.property.types.StringListProperty
+import org.assetfabric.storage.rest.property.types.StringProperty
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test

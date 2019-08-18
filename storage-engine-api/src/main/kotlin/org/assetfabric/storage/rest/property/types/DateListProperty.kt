@@ -15,13 +15,16 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.assetfabric.storage.rest
+package org.assetfabric.storage.rest.property.types
 
-class BinaryInputProperty(): AbstractScalarNodeProperty() {
+import org.assetfabric.storage.rest.property.AbstractSimpleListNodeProperty
+import org.assetfabric.storage.rest.property.NodePropertyType
 
-    constructor(name: String): this() {
-        setValue(name)
+class DateListProperty(): AbstractSimpleListNodeProperty<String>() {
+
+    constructor(vararg vals: String): this() {
+        this.setValues(vals.toList())
     }
 
-    override fun getType(): NodePropertyType = NodePropertyType.BINARY_INPUT
+    override fun getType(): NodePropertyType = NodePropertyType.DATE
 }

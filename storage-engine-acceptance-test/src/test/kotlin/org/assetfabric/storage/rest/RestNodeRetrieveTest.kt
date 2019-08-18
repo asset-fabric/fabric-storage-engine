@@ -25,6 +25,7 @@ import org.assetfabric.storage.NodeType
 import org.assetfabric.storage.Path
 import org.assetfabric.storage.RevisionNumber
 import org.assetfabric.storage.State
+import org.assetfabric.storage.rest.property.AbstractSimpleScalarNodeProperty
 import org.assetfabric.storage.server.Application
 import org.assetfabric.storage.server.controller.Constants.API_TOKEN
 import org.assetfabric.storage.server.service.support.DefaultMetadataManagerService
@@ -86,8 +87,8 @@ class RestNodeRetrieveTest: RestAbstractTest() {
         assertEquals("node1", retNode.getName())
         assertEquals("/node1", retNode.getPath())
         val retProps = retNode.getProperties()
-        assertEquals("1", (retProps["intProp"] as AbstractScalarNodeProperty).getValue())
-        assertEquals("string", (retProps["stringProp"] as AbstractScalarNodeProperty).getValue())
+        assertEquals("1", (retProps["intProp"] as AbstractSimpleScalarNodeProperty).getValue())
+        assertEquals("string", (retProps["stringProp"] as AbstractSimpleScalarNodeProperty).getValue())
     }
 
     @Test
