@@ -32,7 +32,7 @@
         <lucene.version>8.2.0</lucene.version>
         <jackson.version>2.9.9</jackson.version>
         <!-- Databind is tracked separately as vulnerability CVE-2019-12814 -->
-        <jackson.databind.version>2.9.9.1</jackson.databind.version>
+        <jackson.databind.version>2.10.0.pr1</jackson.databind.version>
     </properties>
 
     <dependencies>
