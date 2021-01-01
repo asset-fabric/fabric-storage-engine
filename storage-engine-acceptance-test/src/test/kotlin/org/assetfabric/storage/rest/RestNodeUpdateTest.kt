@@ -21,8 +21,8 @@ import io.restassured.RestAssured
 import org.assetfabric.storage.NodeType
 import org.assetfabric.storage.rest.property.types.BooleanProperty
 import org.assetfabric.storage.rest.property.types.StringProperty
-import org.assetfabric.storage.server.Application
-import org.assetfabric.storage.server.service.support.DefaultMetadataManagerService
+import org.assetfabric.storage.server.runtime.Application
+import org.assetfabric.storage.server.runtime.service.support.DefaultMetadataManagerService
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach

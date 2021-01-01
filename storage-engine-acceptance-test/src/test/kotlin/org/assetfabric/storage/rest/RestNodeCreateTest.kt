@@ -35,8 +35,8 @@ import org.assetfabric.storage.rest.property.types.NodeReferenceListProperty
 import org.assetfabric.storage.rest.property.types.NodeReferenceProperty
 import org.assetfabric.storage.rest.property.types.StringListProperty
 import org.assetfabric.storage.rest.property.types.StringProperty
-import org.assetfabric.storage.server.Application
-import org.assetfabric.storage.server.service.support.DefaultMetadataManagerService
+import org.assetfabric.storage.server.runtime.Application
+import org.assetfabric.storage.server.runtime.service.support.DefaultMetadataManagerService
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach

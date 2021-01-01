@@ -26,9 +26,9 @@ import org.assetfabric.storage.Path
 import org.assetfabric.storage.RevisionNumber
 import org.assetfabric.storage.State
 import org.assetfabric.storage.rest.property.AbstractSimpleScalarNodeProperty
-import org.assetfabric.storage.server.Application
-import org.assetfabric.storage.server.controller.Constants.API_TOKEN
-import org.assetfabric.storage.server.service.support.DefaultMetadataManagerService
+import org.assetfabric.storage.server.runtime.Application
+import org.assetfabric.storage.server.runtime.controller.Constants.API_TOKEN
+import org.assetfabric.storage.server.runtime.service.support.DefaultMetadataManagerService
 import org.assetfabric.storage.spi.metadata.CatalogPartitionAdapter
 import org.assetfabric.storage.spi.metadata.DataPartitionAdapter
 import org.assetfabric.storage.spi.metadata.support.DefaultRevisionedNodeRepresentation

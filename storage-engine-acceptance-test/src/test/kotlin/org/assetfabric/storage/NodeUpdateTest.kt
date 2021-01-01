@@ -17,7 +17,7 @@
 
 package org.assetfabric.storage
 
-import org.assetfabric.storage.server.service.support.DefaultMetadataManagerService
+import org.assetfabric.storage.server.runtime.service.support.DefaultMetadataManagerService
 import org.assetfabric.storage.spi.metadata.DataPartitionAdapter
 import org.assetfabric.storage.spi.metadata.WorkingAreaPartitionAdapter
 import org.assetfabric.storage.spi.metadata.support.DefaultNodeContentRepresentation

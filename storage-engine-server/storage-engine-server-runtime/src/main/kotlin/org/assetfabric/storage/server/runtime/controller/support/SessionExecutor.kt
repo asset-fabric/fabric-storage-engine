@@ -15,38 +15,30 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.assetfabric.storage
+package org.assetfabric.storage.server.runtime.controller.support
 
+import org.assetfabric.storage.Session
 import org.assetfabric.storage.server.runtime.service.SessionService
-import org.assetfabric.storage.server.runtime.service.support.DefaultMetadataManagerService
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.test.context.junit.jupiter.SpringExtension
+import org.springframework.stereotype.Component
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.core.publisher.toFlux
 
-@ExtendWith(SpringExtension::class)
-abstract class AbstractNodeTest {
-
-    @Value("\${test.user}")
-    protected lateinit var user: String
-
-    @Value("\${test.password}")
-    protected lateinit var password: String
+@Component
+class SessionExecutor {
 
     @Autowired
-    protected lateinit var sessionService: SessionService
+    private lateinit var sessionService: SessionService
 
-    @Autowired
-    private lateinit var metadataManagerService: DefaultMetadataManagerService
-
-    protected fun getSession(): Mono<Session> = sessionService.getSession(Credentials(user, password))
-
-    @BeforeEach
-    private fun reset() {
-        metadataManagerService.reset()
+    fun <T> monoUsingSession(token: String, function: (Session) -> Mono<T>): Mono<T> {
+        val sessionMono = sessionService.getSession(token)
+        return sessionMono.flatMap { function.invoke(it) }
     }
 
+    fun <T> fluxUsingSession(token: String, function: (Session) -> Flux<T>): Flux<T> {
+        val sessionMono = sessionService.getSession(token)
+        return sessionMono.toFlux().flatMap { function.invoke(it) }
+    }
 
 }

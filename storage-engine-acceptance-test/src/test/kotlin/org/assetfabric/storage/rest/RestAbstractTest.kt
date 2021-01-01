@@ -22,8 +22,8 @@ import io.restassured.response.Response
 import io.restassured.response.ResponseBodyExtractionOptions
 import io.restassured.specification.RequestSpecification
 import org.apache.logging.log4j.LogManager
-import org.assetfabric.storage.server.controller.Constants
-import org.assetfabric.storage.server.service.support.DefaultMetadataManagerService
+import org.assetfabric.storage.server.runtime.controller.Constants
+import org.assetfabric.storage.server.runtime.service.support.DefaultMetadataManagerService
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith

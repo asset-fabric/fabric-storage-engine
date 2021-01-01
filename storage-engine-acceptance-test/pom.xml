@@ -43,7 +43,7 @@
 
         <dependency>
             <groupId>org.assetfabric</groupId>
-            <artifactId>storage-engine-server</artifactId>
+            <artifactId>storage-engine-server-runtime</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
 

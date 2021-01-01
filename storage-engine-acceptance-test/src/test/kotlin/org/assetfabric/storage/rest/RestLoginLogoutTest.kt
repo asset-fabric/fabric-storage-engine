@@ -20,8 +20,8 @@ package org.assetfabric.storage.rest
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
 import org.assetfabric.storage.Credentials
-import org.assetfabric.storage.server.Application
-import org.assetfabric.storage.server.controller.Constants.API_TOKEN
+import org.assetfabric.storage.server.runtime.Application
+import org.assetfabric.storage.server.runtime.controller.Constants.API_TOKEN
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue

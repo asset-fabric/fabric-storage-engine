@@ -27,13 +27,12 @@
     <version>0.0.5-SNAPSHOT</version>
 
     <modules>
+        <module>storage-engine-api</module>
+        <module>storage-engine-core</module>
+        <module>storage-engine-server</module>
         <module>storage-engine-adapter-binary</module>
         <module>storage-engine-adapter-metadata</module>
         <module>storage-engine-adapter-search</module>
-        <module>storage-engine-api</module>
-        <module>storage-engine-core</module>
-        <module>storage-engine-services</module>
-        <module>storage-engine-server</module>
         <module>storage-engine-acceptance-test</module>
         <module>storage-engine-test-dependencies</module>
     </modules>
