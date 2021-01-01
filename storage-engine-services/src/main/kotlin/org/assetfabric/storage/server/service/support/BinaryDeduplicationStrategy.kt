@@ -17,7 +17,7 @@
 
 package org.assetfabric.storage.server.service.support
 
-import org.assetfabric.storage.spi.FileInfo
+import org.assetfabric.storage.spi.binary.FileInfo
 import java.util.Optional
 
 /**

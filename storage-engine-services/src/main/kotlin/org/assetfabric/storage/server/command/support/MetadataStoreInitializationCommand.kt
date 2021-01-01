@@ -26,7 +26,7 @@ import org.assetfabric.storage.server.command.Command
 import org.assetfabric.storage.server.service.clustering.ClusterSynchronizationService
 import org.assetfabric.storage.spi.metadata.CatalogPartitionAdapter
 import org.assetfabric.storage.spi.metadata.DataPartitionAdapter
-import org.assetfabric.storage.spi.support.DefaultRevisionedNodeRepresentation
+import org.assetfabric.storage.spi.metadata.support.DefaultRevisionedNodeRepresentation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.config.BeanDefinition
 import org.springframework.context.annotation.Scope

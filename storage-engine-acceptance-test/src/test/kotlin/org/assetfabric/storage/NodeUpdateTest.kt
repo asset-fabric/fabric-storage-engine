@@ -20,9 +20,9 @@ package org.assetfabric.storage
 import org.assetfabric.storage.server.service.support.DefaultMetadataManagerService
 import org.assetfabric.storage.spi.metadata.DataPartitionAdapter
 import org.assetfabric.storage.spi.metadata.WorkingAreaPartitionAdapter
-import org.assetfabric.storage.spi.support.DefaultNodeContentRepresentation
-import org.assetfabric.storage.spi.support.DefaultRevisionedNodeRepresentation
-import org.assetfabric.storage.spi.support.DefaultWorkingAreaNodeRepresentation
+import org.assetfabric.storage.spi.metadata.support.DefaultNodeContentRepresentation
+import org.assetfabric.storage.spi.metadata.support.DefaultRevisionedNodeRepresentation
+import org.assetfabric.storage.spi.metadata.support.DefaultWorkingAreaNodeRepresentation
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
@@ -130,7 +130,6 @@ class NodeUpdateTest: AbstractNodeTest() {
             node.setProperties(newProps).block()
         }
     }
-
 
 
 }

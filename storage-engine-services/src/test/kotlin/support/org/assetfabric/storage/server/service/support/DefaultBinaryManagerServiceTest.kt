@@ -22,7 +22,7 @@ import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.times
 import org.assetfabric.storage.InputStreamWithLength
 import org.assetfabric.storage.server.service.BinaryManagerService
-import org.assetfabric.storage.spi.FileInfo
+import org.assetfabric.storage.spi.binary.FileInfo
 import org.assetfabric.storage.spi.binary.BinaryRepositoryStorageAdapter
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull

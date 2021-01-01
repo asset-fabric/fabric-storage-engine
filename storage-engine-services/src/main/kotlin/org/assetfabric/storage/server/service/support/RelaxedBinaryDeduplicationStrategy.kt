@@ -17,7 +17,7 @@
 
 package org.assetfabric.storage.server.service.support
 
-import org.assetfabric.storage.spi.FileInfo
+import org.assetfabric.storage.spi.binary.FileInfo
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 import java.util.Optional

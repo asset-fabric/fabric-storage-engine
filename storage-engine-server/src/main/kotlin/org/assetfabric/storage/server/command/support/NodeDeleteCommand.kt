@@ -24,8 +24,8 @@ import org.assetfabric.storage.State
 import org.assetfabric.storage.server.command.Command
 import org.assetfabric.storage.spi.metadata.DataPartitionAdapter
 import org.assetfabric.storage.spi.metadata.WorkingAreaPartitionAdapter
-import org.assetfabric.storage.spi.support.DefaultNodeContentRepresentation
-import org.assetfabric.storage.spi.support.DefaultWorkingAreaNodeRepresentation
+import org.assetfabric.storage.spi.metadata.support.DefaultNodeContentRepresentation
+import org.assetfabric.storage.spi.metadata.support.DefaultWorkingAreaNodeRepresentation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.config.BeanDefinition
 import org.springframework.context.annotation.Scope

@@ -26,8 +26,8 @@ import org.assetfabric.storage.RevisionNumber
 import org.assetfabric.storage.Session
 import org.assetfabric.storage.State
 import org.assetfabric.storage.server.service.MetadataManagerService
-import org.assetfabric.storage.spi.NodeRepresentation
-import org.assetfabric.storage.spi.RevisionedNodeRepresentation
+import org.assetfabric.storage.spi.metadata.NodeRepresentation
+import org.assetfabric.storage.spi.metadata.RevisionedNodeRepresentation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.config.BeanDefinition
 import org.springframework.context.ApplicationContext

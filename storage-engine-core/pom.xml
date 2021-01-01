@@ -22,7 +22,7 @@
     <parent>
         <artifactId>storage-engine</artifactId>
         <groupId>org.assetfabric</groupId>
-        <version>0.0.4-SNAPSHOT</version>
+        <version>0.0.5-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -49,6 +49,13 @@
                     <groupId>org.slf4j</groupId>
                 </exclusion>
             </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.assetfabric</groupId>
+            <artifactId>storage-engine-test-dependencies</artifactId>
+            <type>pom</type>
+            <version>${project.parent.version}</version>
         </dependency>
 
     </dependencies>

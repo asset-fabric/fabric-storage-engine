@@ -17,7 +17,7 @@
 
 package org.assetfabric.storage.server.service.support
 
-import org.assetfabric.storage.spi.FileInfo
+import org.assetfabric.storage.spi.binary.FileInfo
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue

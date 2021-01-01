@@ -31,7 +31,7 @@ import org.assetfabric.storage.server.controller.Constants.API_TOKEN
 import org.assetfabric.storage.server.service.support.DefaultMetadataManagerService
 import org.assetfabric.storage.spi.metadata.CatalogPartitionAdapter
 import org.assetfabric.storage.spi.metadata.DataPartitionAdapter
-import org.assetfabric.storage.spi.support.DefaultRevisionedNodeRepresentation
+import org.assetfabric.storage.spi.metadata.support.DefaultRevisionedNodeRepresentation
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName

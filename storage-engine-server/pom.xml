@@ -22,7 +22,7 @@
     <parent>
         <artifactId>storage-engine</artifactId>
         <groupId>org.assetfabric</groupId>
-        <version>0.0.4-SNAPSHOT</version>
+        <version>0.0.5-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -59,19 +59,19 @@
 
         <dependency>
             <groupId>org.assetfabric</groupId>
-            <artifactId>storage-engine-adapter-mongo</artifactId>
+            <artifactId>storage-engine-adapter-metadata-mongo</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.assetfabric</groupId>
-            <artifactId>storage-engine-adapter-s3</artifactId>
+            <artifactId>storage-engine-adapter-binary-s3</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.assetfabric</groupId>
-            <artifactId>storage-engine-adapter-lucene</artifactId>
+            <artifactId>storage-engine-adapter-search-lucene</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
 

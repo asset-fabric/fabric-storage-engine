@@ -24,19 +24,18 @@
     <groupId>org.assetfabric</groupId>
     <artifactId>storage-engine</artifactId>
     <packaging>pom</packaging>
-    <version>0.0.4-SNAPSHOT</version>
+    <version>0.0.5-SNAPSHOT</version>
 
     <modules>
+        <module>storage-engine-adapter-binary</module>
+        <module>storage-engine-adapter-metadata</module>
+        <module>storage-engine-adapter-search</module>
         <module>storage-engine-api</module>
         <module>storage-engine-core</module>
         <module>storage-engine-services</module>
         <module>storage-engine-server</module>
-        <module>storage-engine-adapter-spi</module>
-        <module>storage-engine-adapter-mongo</module>
-        <module>storage-engine-adapter-s3</module>
         <module>storage-engine-acceptance-test</module>
-        <module>storage-engine-adapter-block</module>
-        <module>storage-engine-adapter-lucene</module>
+        <module>storage-engine-test-dependencies</module>
     </modules>
 
     <properties>
@@ -48,8 +47,8 @@
 
         <kotlin.version>1.3.21</kotlin.version>
         <spring.boot.version>2.1.6.RELEASE</spring.boot.version>
-        <junit.version>5.2.0</junit.version>
-        <junit.platform.version>1.2.0</junit.platform.version>
+        <junit.version>5.7.0</junit.version>
+        <junit.platform.version>1.7.0</junit.platform.version>
 
         <sonar-maven-plugin.version>3.6.0.1398</sonar-maven-plugin.version>
         <sonar.exclusions>**/configuration/**/*, **/clustering/**/*, **/*Factory*</sonar.exclusions>
@@ -77,72 +76,6 @@
             <artifactId>spring-boot-starter-log4j2</artifactId>
             <version>${spring.boot.version}</version>
         </dependency>
-
-        <!-- Testing -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <version>${spring.boot.version}</version>
-            <scope>test</scope>
-
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-logging</artifactId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>logback-classic</artifactId>
-                    <groupId>ch.qos.logback</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>log4j-over-slf4j</artifactId>
-                    <groupId>org.slf4j</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.junit.vintage</groupId>
-            <artifactId>junit-vintage-engine</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.junit.platform</groupId>
-            <artifactId>junit-platform-launcher</artifactId>
-            <version>${junit.platform.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.nhaarman</groupId>
-            <artifactId>mockito-kotlin</artifactId>
-            <version>${mockito.kotlin.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.awaitility</groupId>
-            <artifactId>awaitility</artifactId>
-            <version>${awaitility.version}</version>
-            <scope>test</scope>
-        </dependency>
-
 
     </dependencies>
 

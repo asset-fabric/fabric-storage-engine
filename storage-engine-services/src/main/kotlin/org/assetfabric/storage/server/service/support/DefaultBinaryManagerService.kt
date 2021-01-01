@@ -20,7 +20,7 @@ package org.assetfabric.storage.server.service.support
 import org.apache.logging.log4j.LogManager
 import org.assetfabric.storage.InputStreamWithLength
 import org.assetfabric.storage.server.service.BinaryManagerService
-import org.assetfabric.storage.spi.FileInfo
+import org.assetfabric.storage.spi.binary.FileInfo
 import org.assetfabric.storage.spi.binary.BinaryRepositoryStorageAdapter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository

@@ -23,8 +23,8 @@ import org.assetfabric.storage.Query
 import org.assetfabric.storage.RevisionNumber
 import org.assetfabric.storage.Session
 import org.assetfabric.storage.State
-import org.assetfabric.storage.spi.NodeRepresentation
-import org.assetfabric.storage.spi.WorkingAreaNodeRepresentation
+import org.assetfabric.storage.spi.metadata.NodeRepresentation
+import org.assetfabric.storage.spi.metadata.WorkingAreaNodeRepresentation
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 

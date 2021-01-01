@@ -20,12 +20,12 @@ package org.assetfabric.storage.server.command.support
 import org.apache.logging.log4j.LogManager
 import org.assetfabric.storage.Session
 import org.assetfabric.storage.server.command.ReturningCommand
-import org.assetfabric.storage.spi.JournalEntryNodeRepresentation
-import org.assetfabric.storage.spi.WorkingAreaNodeRepresentation
 import org.assetfabric.storage.spi.metadata.CatalogPartitionAdapter
+import org.assetfabric.storage.spi.metadata.JournalEntryNodeRepresentation
 import org.assetfabric.storage.spi.metadata.JournalPartitionAdapter
+import org.assetfabric.storage.spi.metadata.WorkingAreaNodeRepresentation
 import org.assetfabric.storage.spi.metadata.WorkingAreaPartitionAdapter
-import org.assetfabric.storage.spi.support.DefaultJournalEntryNodeRepresentation
+import org.assetfabric.storage.spi.metadata.support.DefaultJournalEntryNodeRepresentation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.config.BeanDefinition
 import org.springframework.context.annotation.Scope

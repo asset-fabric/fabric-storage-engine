@@ -22,7 +22,7 @@
     <parent>
         <artifactId>storage-engine</artifactId>
         <groupId>org.assetfabric</groupId>
-        <version>0.0.4-SNAPSHOT</version>
+        <version>0.0.5-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -32,7 +32,19 @@
 
         <dependency>
             <groupId>org.assetfabric</groupId>
-            <artifactId>storage-engine-adapter-spi</artifactId>
+            <artifactId>storage-engine-adapter-metadata-spi</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.assetfabric</groupId>
+            <artifactId>storage-engine-adapter-binary-spi</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.assetfabric</groupId>
+            <artifactId>storage-engine-adapter-search-spi</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
 
