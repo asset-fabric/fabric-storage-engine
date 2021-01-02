@@ -15,7 +15,7 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.assetfabric.storage.server.command.support
+package org.assetfabric.storage.server.runtime.command.support
 
 import org.assetfabric.storage.InputStreamWithLength
 import org.springframework.core.io.buffer.DataBuffer

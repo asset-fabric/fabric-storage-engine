@@ -32,9 +32,9 @@ import org.assetfabric.storage.Query
 import org.assetfabric.storage.RevisionNumber
 import org.assetfabric.storage.Session
 import org.assetfabric.storage.State
-import org.assetfabric.storage.server.command.support.JournalCommitCommand
-import org.assetfabric.storage.server.command.support.JournalEntryCreateCommand
-import org.assetfabric.storage.server.command.support.MetadataStoreInitializationCommand
+import org.assetfabric.storage.server.runtime.command.support.JournalCommitCommand
+import org.assetfabric.storage.server.runtime.command.support.JournalEntryCreateCommand
+import org.assetfabric.storage.server.runtime.command.support.MetadataStoreInitializationCommand
 import org.assetfabric.storage.server.model.DefaultSession
 import org.assetfabric.storage.server.runtime.service.BinaryManagerService
 import org.assetfabric.storage.server.runtime.service.MetadataManagerService

@@ -25,7 +25,7 @@ import org.assetfabric.storage.Session
 import org.assetfabric.storage.rest.NodeContentRepresentation
 import org.assetfabric.storage.rest.NodeRepresentation
 import org.assetfabric.storage.server.command.ReturningCommand
-import org.assetfabric.storage.server.command.support.DataBufferCollector
+import org.assetfabric.storage.server.runtime.command.support.DataBufferCollector
 import org.assetfabric.storage.server.runtime.service.NodePropertyRepresentationMappingService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.buffer.DataBuffer

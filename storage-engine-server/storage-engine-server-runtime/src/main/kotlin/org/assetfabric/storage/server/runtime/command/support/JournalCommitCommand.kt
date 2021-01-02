@@ -15,7 +15,7 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.assetfabric.storage.server.command.support
+package org.assetfabric.storage.server.runtime.command.support
 
 import org.apache.logging.log4j.LogManager
 import org.assetfabric.storage.NodeReference
