@@ -53,6 +53,9 @@
         <mockito.kotlin.version>1.6.0</mockito.kotlin.version>
         <awaitility.version>3.0.0</awaitility.version>
 
+        <jackson.version>2.9.10</jackson.version>
+        <jackson.databind.version>2.9.10.5</jackson.databind.version>
+
     </properties>
 
     <dependencies>

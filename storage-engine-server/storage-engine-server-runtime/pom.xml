@@ -13,9 +13,6 @@
 
     <properties>
         <jackson.version>2.9.9</jackson.version>
-
-        <!-- Databind is tracked separately as vulnerability CVE-2019-12814 -->
-        <jackson.databind.version>2.9.9.1</jackson.databind.version>
         <springfox.version>3.0.0-SNAPSHOT</springfox.version>
         <dokka.version>0.9.17</dokka.version>
     </properties>
