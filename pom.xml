@@ -48,7 +48,8 @@
         <sonar-maven-plugin.version>3.6.0.1398</sonar-maven-plugin.version>
         <sonar.exclusions>**/configuration/**/*, **/clustering/**/*, **/*Factory*</sonar.exclusions>
         <jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
-        <sonar.jacoco.reportPaths>target/jacoco.exec</sonar.jacoco.reportPaths>
+        <sonar.jacoco.reportPaths>${session.executionRootDirectory}/target/jacoco.exec</sonar.jacoco.reportPaths>
+        <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
 
         <mockito.kotlin.version>1.6.0</mockito.kotlin.version>
         <awaitility.version>3.0.0</awaitility.version>
