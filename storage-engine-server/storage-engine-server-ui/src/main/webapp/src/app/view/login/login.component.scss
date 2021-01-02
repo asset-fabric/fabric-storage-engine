@@ -1,0 +1,22 @@
+:host {
+  margin: 10px;
+  flex-grow: 1;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+}
+
+#loginHolder {
+  width: 300px;
+
+  img {
+    width: 100%;
+  }
+
+  #loginButtons {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+  }
+}

@@ -1,0 +1,49 @@
+@import "../../../styles.scss";
+
+:host {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.inspectorOptional {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+
+  .nodeName {
+    color: map-get($mat-orange, A200);
+    font-size: 1.4em;
+  }
+
+  .nodeHeader {
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+
+  .inspectorPropertiesCard {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+
+    mat-card-title {
+      font-size: 1.2em;
+    }
+
+    mat-card-content {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+
+      .propertyTable {
+        th {
+          width: 33%;
+        }
+      }
+
+    }
+  }
+
+}
+
+

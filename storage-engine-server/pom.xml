@@ -31,6 +31,10 @@
 
     <modules>
         <module>storage-engine-server-runtime</module>
+        <module>storage-engine-adapter-binary</module>
+        <module>storage-engine-adapter-metadata</module>
+        <module>storage-engine-adapter-search</module>
+        <module>storage-engine-server-ui</module>
     </modules>
 
 
