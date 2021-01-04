@@ -50,7 +50,6 @@
         <sonar.exclusions>**/configuration/**/*, **/clustering/**/*, **/*Factory*</sonar.exclusions>
         <jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
 
-        <jacoco.output.location>target</jacoco.output.location>
         <sonar.coverage.jacoco.xmlReportPaths>target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
 
         <mockito.kotlin.version>1.6.0</mockito.kotlin.version>
@@ -114,22 +113,11 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>${jacoco-maven-plugin.version}</version>
-                <configuration>
-                    <destFile>${jacoco.output.location}</destFile>
-                    <append>true</append>
-                </configuration>
                 <executions>
                     <execution>
                         <id>prepare-agent</id>
                         <goals>
                             <goal>prepare-agent</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>report</id>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>report-aggregate</goal>
                         </goals>
                     </execution>
                 </executions>
