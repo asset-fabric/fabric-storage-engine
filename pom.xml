@@ -39,7 +39,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.jdk.version>11</java.jdk.version>
-        <kotlin.version>1.4.21</kotlin.version>
+        <kotlin.version>1.6.0</kotlin.version>
         <maven.testing.version>2.22.2</maven.testing.version>
 
         <spring.boot.version>2.1.6.RELEASE</spring.boot.version>
